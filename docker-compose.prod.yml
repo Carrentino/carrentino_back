@@ -3,6 +3,7 @@ version: '1'
 volumes:
   pg_data:
   static-data:
+  redis_data:
 
 services:
   db:
@@ -17,6 +18,8 @@ services:
     env_file: .env
     volumes:
       - static-data:/vol/static
+    depends_on:
+     - db
   gateway:
     container_name: car_rent_gateway
     image: grigoleg/car_rent_gateway
@@ -26,5 +29,19 @@ services:
       - 8000:80
     volumes:
       - static-data:/vol/static
-
-    
+    depends_on:
+      - backend
+  redis:
+    container_name: car_rent_redis
+    image: redis:latest
+    volumes:
+      - redis_data:/data
+  celery:
+    container_name: car_rent_celery
+    image: grigoleg/celery
+    command: celery -A your_project_name worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - backend
+      - redis

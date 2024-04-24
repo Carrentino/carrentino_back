@@ -52,7 +52,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -199,12 +199,28 @@ SMTP_EMAIL = os.getenv("SMTP_EMAIL")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.timeweb.ru'  # укажите здесь SMTP-сервер
+EMAIL_PORT = 465  # порт SMTP-сервера
+EMAIL_USE_SSL = True  # использовать TLS
+EMAIL_HOST_USER = SMTP_EMAIL  # ваш адрес электронной почты
+EMAIL_HOST_PASSWORD = SMTP_PASSWORD  # ваш пароль от электронной почты
+DEFAULT_FROM_EMAIL = SMTP_EMAIL
+CODE_LIFETIME = int(os.getenv("CODE_LIFETIME"))
+
+#
+# Celery
+#
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+
+
 #
 # CSRF
 #
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", '').split(',')
+
 
 
 #

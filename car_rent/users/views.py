@@ -1,8 +1,9 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -12,9 +13,11 @@ from .serializers.model_serializers import (UserRegisterSerializer,
                                             UserSerializer)
 from .serializers.serializers import (AuthTokenOutputSerializer,
                                       AuthTokenSerializer,
-                                      UpdatePasswordSerializer)
-from .utils import authenticate_user, update_password
-from core.utils import send_mail
+                                      SendPasswordCodeSerializer,
+                                      UpdatePasswordSerializer,
+                                      VerifyCodeSerializer)
+from .tasks import send_password_change_email
+from .utils import authenticate_user, generate_code, update_password
 
 User = get_user_model()
 
@@ -48,7 +51,6 @@ class RegistrationView(APIView):
         user_data = request.data.copy()
         serializer = UserRegisterSerializer(data=user_data)
         if serializer.is_valid():
-            # TODO: add smtp mail for checking email
             serializer.save()
             return Response(
                 serializer.data,
@@ -96,9 +98,74 @@ class CustomObtainAuthToken(TokenViewBase):
         return Response(token_serializer.data, status=status.HTTP_202_ACCEPTED)
 
 
+class SendPasswordCodeView(APIView):
+    '''Send password code'''
+    @extend_schema(
+        request=SendPasswordCodeSerializer,
+        responses={
+            status.HTTP_202_ACCEPTED: {
+                "type": "object",
+                "properties": {
+                    "detail": {"type": "string"}
+                },
+                "example": {
+                    "detail": 'Message successfully sent',
+                }
+            },
+        },
+        description='Endpoint for updating user password'
+    )
+    def post(self, request):
+        serializer = SendPasswordCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data.get('email')
+        user = get_object_or_404(User, email=email)
+        first_name = user.first_name
+        last_name = user.last_name
+        code = generate_code()
+        send_password_change_email.delay(email, code, first_name, last_name)
+        cache.set(email, code, timeout=settings.CODE_LIFETIME)
+        return Response({'detail': 'Message successfully sent'}, status=status.HTTP_202_ACCEPTED)
+
+
+class VerifyCodeView(APIView):
+    '''Verify password code'''
+    @extend_schema(
+        request=VerifyCodeSerializer,
+        responses={
+            status.HTTP_202_ACCEPTED: {
+                "type": "object",
+                "properties": {
+                    "detail": {"type": "string"}
+                },
+                "example": {
+                    "detail": 'Code is correct',
+                }
+            },
+            status.HTTP_403_FORBIDDEN: {
+                "type": "object",
+                "properties": {
+                    "error": {"type": "string"}
+                },
+                "example": {
+                    "error": 'Code is not correct',
+                }
+            },
+        },
+        description='Endpoint for verifying user code'
+    )
+    def post(self, request):
+        serializer = VerifyCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data.get('email')
+        code = serializer.validated_data.get('code')
+        if code == cache.get(email):
+            return Response({'detail': 'Code is correct'}, status=status.HTTP_202_ACCEPTED)
+        return Response({'error': 'Code is not correct'}, status=status.HTTP_403_FORBIDDEN)
+
+
 class UpdatePasswordView(APIView):
     '''Update Password'''
-    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         request=UpdatePasswordSerializer,
@@ -106,23 +173,32 @@ class UpdatePasswordView(APIView):
             status.HTTP_200_OK: {
                 "type": "object",
                 "properties": {
-                    "message": {"type": "string"}
+                    "detail": {"type": "string"}
                 },
                 "example": {
-                    "message": 'Password successfully updated',
+                    "detail": 'Password successfully updated',
                 }
             },
-            status.HTTP_403_FORBIDDEN: {}
+            status.HTTP_403_FORBIDDEN: {
+                "type": "object",
+                "properties": {
+                    "error": {"type": "string"}
+                },
+                "example": {
+                    "error": 'Code is timeout',
+                }
+            },
         },
         description='Endpoint for updating user password'
     )
     def patch(self, request):
         serializer = UpdatePasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        # TODO: add email message and code
         email = serializer.validated_data.get('email')
+        code = serializer.validated_data.get('code')
         new_password = serializer.validated_data.get('new_password')
-        if request.user.email == email:
+        if code == cache.get(email):
             update_password(email, new_password)
-            return Response({'message': 'Password successfully updated'}, status=status.HTTP_200_OK)
-        raise PermissionDenied()
+            cache.delete(email)
+            return Response({'detail': 'Password successfully updated'}, status=status.HTTP_200_OK)
+        return Response({'error': 'Code is timeout'}, status=status.HTTP_403_FORBIDDEN)

@@ -1,3 +1,5 @@
+import random
+
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import get_object_or_404
@@ -21,3 +23,9 @@ def update_password(email, new_password):
     user = get_object_or_404(User, email=email)
     user.password = make_password(new_password)
     user.save()
+
+
+def generate_code():
+    code = ''.join([str(random.randint(0, 9)) if i > 0 else str(
+        random.randint(1, 9)) for i in range(6)])
+    return code

@@ -1,4 +1,5 @@
 import smtplib
+
 from django.conf import settings
 
 
@@ -10,5 +11,5 @@ def send_mail(message: str, to_email: str, title: str):
     password = settings.SMTP_PASSWORD
     server.login(email, password)
     from_email = email
-    server.sendmail(from_email, to_email, f'Subject: {title}\n\n{message}')
+    server.sendmail(from_email, to_email, message)
     server.quit()
