@@ -2,9 +2,11 @@ from core.views import BaseGetView
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (OpenApiParameter, extend_schema,
                                    extend_schema_view)
+from rest_framework import mixins, viewsets
 
+from .choices import CAR_STATUS_CHOCIES
 from .filtersets import BrandFilterset, CarModelFilterset
-from .models import Brand, CarModel
+from .models import Brand, Car, CarModel
 from .serializers.brief_serializers import (BrandBriefSerialzer,
                                             CarModelBriefSerializer)
 from .serializers.model_serializers import BrandSerializer, CarModelSerializer
@@ -51,3 +53,15 @@ class CarModelView(BaseGetView):
     serializer_class = CarModelSerializer
     serializer_class_brief = CarModelBriefSerializer
     filterset_class = CarModelFilterset
+
+
+class CarView(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    queryset = Car.objects.filter(status=CAR_STATUS_CHOCIES.VERIFIED)
+
+    def get_queryset(self):
+        if self.request.method == 'GET' and 'pk' not in self.kwargs and self.request.GET.get('list'):
+            return Car.objects.filter(status=CAR_STATUS_CHOCIES.VERIFIED).only('id', 'title', 'price', 'score')
+        elif self.request.method == 'GET' and 'pk' not in self.kwargs and self.request.GET.get('map'):
+            return Car.objects.filter(status=CAR_STATUS_CHOCIES.VERIFIED).only('id', 'latitude', 'longitude')
+        else:
+            return Car.objects.filter(status=CAR_STATUS_CHOCIES.VERIFIED)
