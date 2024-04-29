@@ -1,5 +1,4 @@
 class ChoicesMeta(type):
-
     def __call__(cls, *args, **kwargs):
         return getattr(cls, 'CHOICES', ())
 

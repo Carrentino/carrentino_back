@@ -12,23 +12,32 @@ class Order(BaseAbstractModel):
     class OrderStatus(models.TextChoices):
         UNDER_CONSIDERATION = 'UC', _("На рассмотрении")
         ACCEPTED = 'AD', _("Одобрен")
+        IN_PROGRESS = 'IP', _("Выполняется")
+        CANCELED = 'CD', _("Отменен")
         REJECTED = 'RD', _("Отклонен")
 
-    сar = models.ForeignKey(
+    car = models.ForeignKey(
         Car, on_delete=models.CASCADE,
-        verbose_name="Арендованный автомобиль"
+        verbose_name="Арендованный автомобиль",
     )
     renter = models.ForeignKey(
         User, on_delete=models.CASCADE,
         verbose_name="Арендатор"
     )
-    #  связь с чатом по заказу
+    #  TODO: связь с чатом
 
-    desired_date = models.DateTimeField(
-        verbose_name="До какого времени аренда"
+    desired_finish_datetime = models.DateTimeField(
+        verbose_name="Планируемое время окончания аренда"
+    )
+    desired_start_datetime = models.DateTimeField(
+        verbose_name="Планируемое время начала аренды"
     )
     start_rent_time = models.DateTimeField(
-        verbose_name="Время начала аренды",
+        verbose_name="фактическое время начала аренды",
+        null=True, blank=True
+    )
+    finish_datetime = models.DateTimeField(
+        verbose_name="фактическое время окончания аренды",
         null=True, blank=True
     )
     status = models.CharField(

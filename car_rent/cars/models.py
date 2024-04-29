@@ -75,8 +75,10 @@ class Car(BaseAbstractModel):
     price = models.IntegerField(verbose_name='Цена')
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name='Владелец')
-    status = models.CharField(max_length=3, choices=CAR_STATUS_CHOCIES,
-                              default=CAR_STATUS_CHOCIES.NOT_VERIFIED, verbose_name='Статус')
+    status = models.CharField(
+        choices=CAR_STATUS_CHOCIES,default=CAR_STATUS_CHOCIES.NOT_VERIFIED, 
+        verbose_name='Статус'
+    )
     latitude = models.FloatField(verbose_name='Широта')
     langitude = models.FloatField(verbose_name='Долгота')
 
