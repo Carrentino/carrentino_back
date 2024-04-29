@@ -9,7 +9,9 @@ from .filtersets import BrandFilterset, CarModelFilterset
 from .models import Brand, Car, CarModel
 from .serializers.brief_serializers import (BrandBriefSerialzer,
                                             CarModelBriefSerializer)
-from .serializers.model_serializers import BrandSerializer, CarModelSerializer
+from .serializers.model_serializers import (BrandSerializer, CarListSerializer,
+                                            CarMapSerializer,
+                                            CarModelSerializer, CarSerializer)
 
 
 @extend_schema_view(
@@ -56,7 +58,6 @@ class CarModelView(BaseGetView):
 
 
 class CarView(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
-    queryset = Car.objects.filter(status=CAR_STATUS_CHOCIES.VERIFIED)
 
     def get_queryset(self):
         if self.request.method == 'GET' and 'pk' not in self.kwargs and self.request.GET.get('list'):
@@ -65,3 +66,11 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveMod
             return Car.objects.filter(status=CAR_STATUS_CHOCIES.VERIFIED).only('id', 'latitude', 'longitude')
         else:
             return Car.objects.filter(status=CAR_STATUS_CHOCIES.VERIFIED)
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET' and 'pk' not in self.kwargs and self.request.GET.get('list'):
+            return CarListSerializer
+        elif self.request.method == 'GET' and 'pk' not in self.kwargs and self.request.GET.get('map'):
+            return CarMapSerializer
+        else:
+            return CarSerializer

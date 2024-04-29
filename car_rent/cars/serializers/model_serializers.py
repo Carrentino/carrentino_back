@@ -1,4 +1,4 @@
-from cars.models import Brand, BrandPhoto, CarModel, CarModelPhoto
+from cars.models import Brand, BrandPhoto, Car, CarModel, CarModelPhoto
 from rest_framework import serializers
 
 
@@ -43,4 +43,33 @@ class CarModelSerializer(serializers.ModelSerializer):
             'fuel_consumption',
             'hp',
             'photos',
+        ]
+
+
+class CarSerializer(serializers.ModelSerializer):
+    '''Serializer of car'''
+
+    class Meta:
+        model = Car
+        fields = '__all__'
+
+
+class CarListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = [
+            'id',
+            'title',
+            'price',
+            'score',
+        ]
+
+
+class CarMapSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = [
+            'id',
+            'latitude',
+            'longitude',
         ]
