@@ -9,6 +9,7 @@ router = DefaultRouter()
 
 router.register('brands', BrandView, basename='brands')
 router.register('car_models', CarModelView, basename='car_models')
+router.register('car', CarView, basename='car')
 
 urlpatterns = [
     path('', include(router.urls))
