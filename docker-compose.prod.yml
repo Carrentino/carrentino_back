@@ -1,4 +1,4 @@
-version: '1'
+version: '3'
 
 volumes:
   pg_data:
@@ -39,7 +39,7 @@ services:
   celery:
     container_name: car_rent_celery
     image: grigoleg/celery
-    command: celery -A your_project_name worker -l info
+    command: celery -A celery_conf.app worker -l info
     volumes:
       - .:/app
     depends_on:
