@@ -206,12 +206,13 @@ EMAIL_USE_SSL = True  # использовать TLS
 EMAIL_HOST_USER = SMTP_EMAIL  # ваш адрес электронной почты
 EMAIL_HOST_PASSWORD = SMTP_PASSWORD  # ваш пароль от электронной почты
 DEFAULT_FROM_EMAIL = SMTP_EMAIL
-CODE_LIFETIME = int(os.getenv("CODE_LIFETIME"))
+CODE_LIFETIME = int(os.getenv("CODE_LIFETIME", '1'))
 
 #
 # Celery
 #
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 
 
 #
