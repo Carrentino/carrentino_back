@@ -23,3 +23,12 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ('car', 'desired_finish_datetime', 'desired_start_datetime', )
+
+
+class OrderUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ('desired_finish_datetime', 'desired_start_datetime')
+
+
+# class OrderAccept

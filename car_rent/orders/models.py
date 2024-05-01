@@ -8,7 +8,6 @@ from cars.models import Car
 
 class Order(BaseAbstractModel):
     """Model of order"""
-
     class OrderStatus(models.TextChoices):
         UNDER_CONSIDERATION = 'UC', _("На рассмотрении")
         ACCEPTED = 'AD', _("Одобрен")
@@ -45,6 +44,15 @@ class Order(BaseAbstractModel):
         max_length=2,
         choices=OrderStatus.choices,
         default=OrderStatus.UNDER_CONSIDERATION,
+    )
+    is_renter_start_order = models.BooleanField(
+        blank=True, default=False,
+        verbose_name="Подтвердил ли арендатор старт заказа"
+
+    )
+    is_lessor_start_order = models.BooleanField(
+        blank=True, default=False,
+        verbose_name="Подтвердил ли арендодатель старт заказа"
     )
 
     class Meta:
