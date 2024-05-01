@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError
 
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (OpenApiParameter, extend_schema,
@@ -63,7 +63,7 @@ from .utils import check_order_status
                     "detail": {"type": "string"}
                 },
                 "example": {
-                    "error": 'финишная дата и время не могут быть меньше стартовойй даты и время',
+                    "error": 'Планируемое время начала аренды должно быть раньше времени окончания аренды',
                 }
             }
         }
@@ -86,7 +86,7 @@ from .utils import check_order_status
                     "detail": {"type": "string"}
                 },
                 "example": {
-                    "ok": 'Для изменения на статус <requested_status>, заявка должна находиться в статусе <expected_status>',
+                    "error": 'Для изменения на статус <requested_status>, заявка должна находиться в статусе <expected_status>',
                 }
             }
         }
@@ -109,7 +109,7 @@ from .utils import check_order_status
                     "detail": {"type": "string"}
                 },
                 "example": {
-                    "ok": 'Для изменения на статус <requested_status>, заявка должна находиться в статусе <expected_status>',
+                    "error": 'Для изменения на статус <requested_status>, заявка должна находиться в статусе <expected_status>',
                 }
             }
         }
@@ -132,7 +132,7 @@ from .utils import check_order_status
                     "detail": {"type": "string"}
                 },
                 "example": {
-                    "ok": 'Для изменения на статус <requested_status>, заявка должна находиться в статусе <expected_status>',
+                    "error": 'Для изменения на статус <requested_status>, заявка должна находиться в статусе <expected_status>',
                 }
             }
         }
@@ -149,13 +149,13 @@ from .utils import check_order_status
                     "ok": 'вы подтвердили старт заказа',
                 }
             },
-            status.HTTP_409_CONFLICT: {
+            status.HTTP_400_BAD_REQUEST: {
                 "type": "object",
                 "properties": {
                     "detail": {"type": "string"}
                 },
                 "example": {
-                    "ok": 'Для изменения на статус <requested_status>, заявка должна находиться в статусе <expected_status>',
+                    "error": 'Для изменения на статус <requested_status>, заявка должна находиться в статусе <expected_status>',
                 }
             }
         }
@@ -185,31 +185,17 @@ class OrderViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet,
 
     def get_permission(self):
         return self.permission_classes.get(self.action, [IsAuthenticated])
-    
-    def update(self, request, *args, **kwargs):
-        serializer = self.get_serializer_class()
-        serializer = serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        finish_datetime = serializer.validated_data.get('desired_finish_datetime')
-        start_datetime = serializer.validated_data.get('desired_start_datetime')
-        if start_datetime > finish_datetime:
-            return Response({"error": "финишная дата и время не могут быть меньше стартовойй даты и время"})
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         """Создание заказа"""
-        serializer = self.get_serializer_class()
-        serializer = serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        car = serializer.validated_data.get('car')
-        if Order.objects.filter(renter=request.user, car_id=car):
-            return Response(
-                {"error": "Вы уже создали заявку на этот автомобиль"},
-                status=status.HTTP_409_CONFLICT
-            )
-        serializer.save(renter=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        try:
+            serializer = self.get_serializer_class()
+            serializer = serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(renter=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except ValueError:
+            return Response({"error": "Вы уже создали заявку на этот автомобиль"}, status=status.HTTP_409_CONFLICT)
 
     @action(detail=False, methods=['get'])
     def list_lessor_orders(self, request, car_id=None):
@@ -241,7 +227,7 @@ class OrderViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet,
             return status_checker[1]
         order.status = Order.OrderStatus.ACCEPTED
         # TODO: добавить таску для отправки уведов
-        order.save()
+        order.save(requested_status=Order.OrderStatus.ACCEPTED)
         return Response({"ok": "Заказ подтвержден"}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
@@ -280,4 +266,5 @@ class OrderViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet,
             order.status = Order.OrderStatus.IN_PROGRESS
         order.save()
         # TODO: добавить уведы
+        # TODO: Попиздеть с егором за ответы
         return Response({"ok": "вы подтвердили старт заказа"}, status=status.HTTP_200_OK)

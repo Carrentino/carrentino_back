@@ -1,4 +1,5 @@
-from django.db import models
+from django.db import IntegrityError, models
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from core.models import BaseAbstractModel
@@ -14,7 +15,7 @@ class Order(BaseAbstractModel):
         IN_PROGRESS = 'IP', _("Выполняется")
         CANCELED = 'CD', _("Отменен")
         REJECTED = 'RD', _("Отклонен")
-
+        FINISHED = 'FD', _("Завершен")
     car = models.ForeignKey(
         Car, on_delete=models.CASCADE,
         verbose_name="Арендованный автомобиль",
@@ -55,6 +56,17 @@ class Order(BaseAbstractModel):
         verbose_name="Подтвердил ли арендодатель старт заказа"
     )
 
+    def clean(self) -> None:
+        super().clean()
+        if self.desired_start_datetime >= self.desired_finish_datetime:
+            raise ValidationError("Планируемое время начала аренды должно быть раньше времени окончания аренды")
+
+    def save(self, *args, **kwargs):
+        try:
+            super().save(*args, **kwargs)
+        except IntegrityError:
+            raise ValueError("Вы уже создали заявку на этот автомобиль")
+
     class Meta:
         db_table = 'order_table'
-    
+        unique_together = ['renter', 'car']
