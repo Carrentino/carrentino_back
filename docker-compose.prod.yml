@@ -37,11 +37,12 @@ services:
     volumes:
       - redis_data:/data
   celery:
-    container_name: car_rent_celery
     image: grigoleg/car_rent_backend
-    command: celery -A celery_conf.app worker -l info
-    volumes:
-      - .:/app
+    hostname: worker
+    entrypoint: celery
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    command: -A celery_conf.app worker -l info
     depends_on:
-      - backend
       - redis
