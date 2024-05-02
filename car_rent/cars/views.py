@@ -7,6 +7,7 @@ from rest_framework import mixins, viewsets
 from .choices import CAR_STATUS_CHOCIES
 from .filtersets import BrandFilterset, CarModelFilterset
 from .models import Brand, Car, CarModel
+from .permissions import CarPermission
 from .serializers.brief_serializers import (BrandBriefSerialzer,
                                             CarModelBriefSerializer)
 from .serializers.model_serializers import (BrandSerializer, CarListSerializer,
@@ -80,6 +81,7 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
         'list': CarListSerializer,
         'map': CarMapSerializer,
     }
+    permission_class = CarPermission
 
     def get_queryset(self):
         view = self.request.GET.get('view', None)
