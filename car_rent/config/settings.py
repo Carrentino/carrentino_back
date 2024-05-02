@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 from distutils.util import strtobool
 from pathlib import Path
@@ -147,6 +148,12 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7)
+
+}
 AUTH_USER_MODEL = 'users.User'
 
 LANGUAGE_CODE = 'en-us'
@@ -206,7 +213,7 @@ EMAIL_USE_SSL = True  # использовать TLS
 EMAIL_HOST_USER = SMTP_EMAIL  # ваш адрес электронной почты
 EMAIL_HOST_PASSWORD = SMTP_PASSWORD  # ваш пароль от электронной почты
 DEFAULT_FROM_EMAIL = SMTP_EMAIL
-CODE_LIFETIME = int(os.getenv("CODE_LIFETIME", '1'))
+CODE_LIFETIME = int(os.getenv("CODE_LIFETIME", '120'))
 
 #
 # Celery
@@ -220,7 +227,7 @@ CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 #
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", '').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", 'https://').split(',')
 
 
 

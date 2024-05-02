@@ -28,3 +28,5 @@ class CarModelAdmin(admin.ModelAdmin):
 
 
 admin.site.register(CarModel, CarModelAdmin)
+
+admin.site.register(Car)
