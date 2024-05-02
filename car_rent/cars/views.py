@@ -1,10 +1,8 @@
 from core.views import BaseGetView
-from django.db import transaction
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (OpenApiParameter, extend_schema,
                                    extend_schema_view)
-from rest_framework import mixins, status, viewsets
-from rest_framework.response import Response
+from rest_framework import mixins, viewsets
 
 from .choices import CAR_STATUS_CHOCIES
 from .filtersets import BrandFilterset, CarModelFilterset
@@ -14,7 +12,6 @@ from .serializers.brief_serializers import (BrandBriefSerialzer,
 from .serializers.model_serializers import (BrandSerializer, CarListSerializer,
                                             CarMapSerializer,
                                             CarModelSerializer, CarSerializer)
-from .utils import load_foreign_models
 
 
 @extend_schema_view(
@@ -60,14 +57,23 @@ class CarModelView(BaseGetView):
     filterset_class = CarModelFilterset
 
 
+@extend_schema_view(
+    list=extend_schema(
+        description="Список автомобилей",
+        parameters=[
+            OpenApiParameter(name='view', type=OpenApiTypes.STR, required=False, location=OpenApiParameter.QUERY,
+                             description='Вид отображения список/карта', enum=['map', 'list'])
+        ]
+    ),
+)
 class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
               mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
               mixins.DestroyModelMixin, viewsets.GenericViewSet):
     '''Вьюсет для автомобилей'''
     queryset = Car.objects.filter(status=CAR_STATUS_CHOCIES.VERIFIED)
     queryset_only_fields = {
-        'list': ('id', 'title', 'price', 'score'),
-        'map': ('id', 'latitude', 'longitude'),
+        'list': ('id', 'car_model__title', 'price', 'score'),
+        'map': ('id', 'latitude', 'langitude'),
     }
     serializer_class = CarSerializer
     serializer_classes = {
@@ -80,7 +86,7 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
         if self.action == 'list' and view is not None:
             fields = self.queryset_only_fields.get(view, None)
             if fields is not None:
-                return self.queryset.only(fields)
+                return self.queryset.only(*fields)
         return self.queryset
 
     def get_serializer_class(self):
@@ -88,40 +94,3 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
         if self.action == 'list' and view is not None:
             return self.serializer_classes.get(view, self.serializer_class)
         return self.serializer_class
-
-    @transaction.atomic
-    def create(self, request, *args, **kwargs):
-        photos_data = request.data.pop('photos', [])
-        options_data = request.data.pop('options', [])
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-
-        car_instance = serializer.instance
-
-        load_foreign_models(photos_data, options_data, car_instance)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    @transaction.atomic
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-
-        photos_data = request.data.pop('photos', [])
-        options_data = request.data.pop('options', [])
-
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        car_instance = serializer.instance
-
-        car_instance.car_photo.all().delete()
-        car_instance.car_option.all().delete()
-
-        load_foreign_models(photos_data, options_data, car_instance)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
