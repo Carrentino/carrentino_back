@@ -73,7 +73,7 @@ class Car(BaseAbstractModel):
     color = models.CharField(max_length=25, verbose_name='Цвет')
     score = models.DecimalField(default=5.0, decimal_places=2, max_digits=3, validators=[
                                 MinValueValidator(0.0), MaxValueValidator(5.01)], verbose_name='Рейтинг')
-    price = models.IntegerField(verbose_name='Цена')
+    price = models.PositiveIntegerField(verbose_name='Цена')
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name='Владелец')
     status = StatusField(choices=CAR_STATUS_CHOCIES,
@@ -84,7 +84,8 @@ class Car(BaseAbstractModel):
 
 class CarOptions(models.Model):
     '''Model of car option'''
-    car = models.ForeignKey(Car, on_delete=models.CASCADE)
+    car = models.ForeignKey(Car, on_delete=models.CASCADE,
+                            related_name='car_option')
     option = models.CharField(max_length=200)
 
 
@@ -107,10 +108,15 @@ class BrandPhoto(models.Model):
 
     class Meta:
         verbose_name = 'Фотография бренда'
-        verbose_name_plural = 'Фотографии бренда'
+        verbose_name_plural = 'Фотографии брендов'
 
 
 class CarPhoto(models.Model):
     '''Model of User's car photo'''
-    photo = models.ImageField()
-    car = models.ForeignKey(Car, on_delete=models.CASCADE)
+    photo = models.ImageField(upload_to='cars', verbose_name='Фото')
+    car = models.ForeignKey(Car, on_delete=models.CASCADE,
+                            verbose_name='Автомобиль', related_name='car_photo')
+
+    class Meta:
+        verbose_name = 'Фотография автомобиля'
+        verbose_name_plural = 'Фотографии автомобилей'

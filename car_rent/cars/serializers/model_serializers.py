@@ -1,5 +1,7 @@
-from cars.models import Brand, BrandPhoto, Car, CarModel, CarModelPhoto
+from cars.models import (Brand, BrandPhoto, Car, CarModel, CarModelPhoto,
+                         CarOptions, CarPhoto)
 from rest_framework import serializers
+from users.serializers.model_serializers import UserSerializer
 
 
 class BrandPhotoSerializer(serializers.ModelSerializer):
@@ -46,12 +48,48 @@ class CarModelSerializer(serializers.ModelSerializer):
         ]
 
 
+class CarPhotoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CarPhoto
+        fields = ['photo',]
+
+
+class CarOptionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CarOptions
+        fields = ['option',]
+
+
 class CarSerializer(serializers.ModelSerializer):
-    '''Serializer of car'''
+    '''Сериалайзер автомобилей'''
+    car_model = CarModelSerializer(read_only=True)
+    car_model_id = serializers.CharField(write_only=True)
+
+    owner = UserSerializer(read_only=True)
+    owner_id = serializers.CharField(write_only=True)
+
+    photos = CarPhotoSerializer(source='car_photo', many=True)
+    options = CarOptionSerializer(source='car_option', many=True)
 
     class Meta:
         model = Car
-        fields = '__all__'
+        fields = [
+            'id',
+            'car_model',
+            'car_model_id',
+            'color',
+            'score',
+            'price',
+            'owner',
+            'owner_id',
+            'status',
+            'latitude',
+            'langitude',
+            'photos',
+            'options',
+        ]
 
 
 class CarListSerializer(serializers.ModelSerializer):

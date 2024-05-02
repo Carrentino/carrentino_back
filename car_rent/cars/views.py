@@ -2,7 +2,8 @@ from core.views import BaseGetView
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (OpenApiParameter, extend_schema,
                                    extend_schema_view)
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, status, viewsets
+from rest_framework.response import Response
 
 from .choices import CAR_STATUS_CHOCIES
 from .filtersets import BrandFilterset, CarModelFilterset
@@ -12,6 +13,7 @@ from .serializers.brief_serializers import (BrandBriefSerialzer,
 from .serializers.model_serializers import (BrandSerializer, CarListSerializer,
                                             CarMapSerializer,
                                             CarModelSerializer, CarSerializer)
+from .utils import load_foreign_models
 
 
 @extend_schema_view(
@@ -57,20 +59,66 @@ class CarModelView(BaseGetView):
     filterset_class = CarModelFilterset
 
 
-class CarView(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
+class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
+              mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
+              mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    '''Вьюсет для автомобилей'''
+    queryset = Car.objects.filter(status=CAR_STATUS_CHOCIES.VERIFIED)
+    queryset_only_fields = {
+        'list': ('id', 'title', 'price', 'score'),
+        'map': ('id', 'latitude', 'longitude'),
+    }
+    serializer_class = CarSerializer
+    serializer_classes = {
+        'list': CarListSerializer,
+        'map': CarMapSerializer,
+    }
 
     def get_queryset(self):
-        if self.request.method == 'GET' and 'pk' not in self.kwargs and self.request.GET.get('list'):
-            return Car.objects.filter(status=CAR_STATUS_CHOCIES.VERIFIED).only('id', 'title', 'price', 'score')
-        elif self.request.method == 'GET' and 'pk' not in self.kwargs and self.request.GET.get('map'):
-            return Car.objects.filter(status=CAR_STATUS_CHOCIES.VERIFIED).only('id', 'latitude', 'longitude')
-        else:
-            return Car.objects.filter(status=CAR_STATUS_CHOCIES.VERIFIED)
+        view = self.request.GET.get('view', None)
+        if self.action == 'list' and view is not None:
+            fields = self.queryset_only_fields.get(view, None)
+            if fields is not None:
+                return self.queryset.only(fields)
+        return self.queryset
 
     def get_serializer_class(self):
-        if self.request.method == 'GET' and 'pk' not in self.kwargs and self.request.GET.get('list'):
-            return CarListSerializer
-        elif self.request.method == 'GET' and 'pk' not in self.kwargs and self.request.GET.get('map'):
-            return CarMapSerializer
-        else:
-            return CarSerializer
+        view = self.request.GET.get('view', None)
+        if self.action == 'list' and view is not None:
+            return self.serializer_classes.get(view, self.serializer_class)
+        return self.serializer_class
+
+    def create(self, request, *args, **kwargs):
+        photos_data = request.data.pop('photos', [])
+        options_data = request.data.pop('options', [])
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        car_instance = serializer.instance
+
+        load_foreign_models(photos_data, options_data, car_instance)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        photos_data = request.data.pop('photos', [])
+        options_data = request.data.pop('options', [])
+
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        car_instance = serializer.instance
+
+        car_instance.car_photo.all().delete()
+        car_instance.car_option.all().delete()
+
+        load_foreign_models(photos_data, options_data, car_instance)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
