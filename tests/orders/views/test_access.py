@@ -1,10 +1,13 @@
 from django.urls import reverse
+from django.utils import timezone
 
 from rest_framework import status
+from datetime import timedelta
 
 import pytest
 
-from factories.cars import 
+from factories.cars import CarFactory
+from car_rent.cars.choices import CAR_STATUS_CHOCIES
 
 
 @pytest.mark.parametrize(
@@ -36,3 +39,12 @@ def test_access_other_api_orders_by_unauthorized_user(unauthorized_user):
 
 
 def test_twice_create_order_for_one_car(user_client):
+    car = CarFactory(status=CAR_STATUS_CHOCIES.VERIFIED)
+    order = Order
+    data_to_send = {
+        "car": car.id,
+        "desired_start_datetime": timezone.now(),
+        "desired_finish_datetime": timezone.now() + timedelta(hours=1)
+    }
+    order
+    response = user_client.post(reverse("orders:order-list"), data=data_to_send)

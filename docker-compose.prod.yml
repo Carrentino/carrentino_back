@@ -9,7 +9,7 @@ services:
   db:
     container_name: car_rent_db
     image: postgres:15
-    env_file: .env_file
+    env_file: .env
     volumes:
       - pg_data:/var/lib/postgresql/data
   backend:
@@ -38,7 +38,7 @@ services:
       - redis_data:/data
   celery:
     container_name: car_rent_celery
-    image: grigoleg/celery
+    image: grigoleg/car_rent_backend
     command: celery -A celery_conf.app worker -l info
     volumes:
       - .:/app

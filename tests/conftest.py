@@ -12,11 +12,16 @@ register(cars.CarModelFactory)
 
 
 @pytest.fixture
-def user_client(db):
-    '''Client of registered user'''
+def user(db):
     user = User.objects.create_user(
         username='user_client', password='password', email='client@user.ru')
     user.refresh_from_db()
+    return user
+
+
+@pytest.fixture
+def user_client(db, user):
+    '''Client of registered user'''
     client_instance = Client()
     client_instance.force_login(user)
     return client_instance
