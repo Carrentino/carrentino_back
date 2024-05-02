@@ -1,4 +1,5 @@
 from core.views import BaseGetView
+from django.db import transaction
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (OpenApiParameter, extend_schema,
                                    extend_schema_view)
@@ -88,6 +89,7 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
             return self.serializer_classes.get(view, self.serializer_class)
         return self.serializer_class
 
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
         photos_data = request.data.pop('photos', [])
         options_data = request.data.pop('options', [])
@@ -102,6 +104,7 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @transaction.atomic
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
