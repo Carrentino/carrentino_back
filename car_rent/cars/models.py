@@ -1,4 +1,5 @@
 from core.models import BaseAbstractModel
+from core.types import StatusField
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -75,10 +76,8 @@ class Car(BaseAbstractModel):
     price = models.IntegerField(verbose_name='Цена')
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name='Владелец')
-    status = models.CharField(
-        choices=CAR_STATUS_CHOCIES,default=CAR_STATUS_CHOCIES.NOT_VERIFIED, 
-        verbose_name='Статус'
-    )
+    status = StatusField(choices=CAR_STATUS_CHOCIES,
+                         default=CAR_STATUS_CHOCIES.NOT_VERIFIED)
     latitude = models.FloatField(verbose_name='Широта')
     langitude = models.FloatField(verbose_name='Долгота')
 
