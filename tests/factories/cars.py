@@ -21,3 +21,13 @@ class CarModelFactory(factory.django.DjangoModelFactory):
         digits=1) + faker.random_number(digits=1, fix_len=False) * 0.01)
     hp = factory.LazyFunction(lambda: faker.random_int(min=5, max=15))
     brand = factory.SubFactory(BrandFactory)
+
+
+class CarFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.Car
+    car_model = CarModelFactory()
+    color = FakerFactory('word')
+    price = FakerFactory("pyint")
+    owner = 
+

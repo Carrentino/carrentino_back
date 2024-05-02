@@ -15,7 +15,7 @@ from .utils import check_order_status
 
 
 @extend_schema_view(
-    list_arendodator_orders=extend_schema(
+    list_lessor_orders=extend_schema(
         description="Список заказов арендодателя с возможностью фильтрации по конкретной машине",
         parameters=[
             OpenApiParameter(name='car_id', type=OpenApiTypes.INT, required=False, location=OpenApiParameter.QUERY,
