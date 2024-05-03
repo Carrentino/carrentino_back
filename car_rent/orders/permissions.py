@@ -1,16 +1,21 @@
 from rest_framework import permissions
 
 
-class IsOwnerRenterOrder(permissions.BasePermission):
+class BaseAuthUserPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated
+
+
+class IsOwnerRenterOrder(BaseAuthUserPermission):
     def has_object_permission(self, request, view, obj):
         return (obj.renter == request.user or obj.car.owner == request.user)
 
 
-class IsCarOwnerOrder(permissions.BasePermission):
+class IsCarOwnerOrder(BaseAuthUserPermission):
     def has_object_permission(self, request, view, obj):
         return obj.car.owner == request.user
     
 
-class IsRenterOrder(permissions.BasePermission):
+class IsRenterOrder(BaseAuthUserPermission):
     def has_object_permission(self, request, view, obj):
         return obj.renter == request.user

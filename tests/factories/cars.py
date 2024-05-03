@@ -30,13 +30,13 @@ class CarFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Car
     car_model = factory.SubFactory(CarModelFactory)
-    color = FakerFactory('word')
-    score = factory.Faker('pydecimal', left_digits=1, right_digits=2, positive=True, min_value=0, max_value=5)
-    price = FakerFactory("pyint")
+    color = factory.Faker('word')
+    score = factory.Faker('pydecimal', left_digits=1, right_digits=2, positive=True, min_value=1, max_value=5)
+    price = factory.Faker("pyint")
     owner = factory.SubFactory(UserFactory)
     status = factory.Faker('random_element', elements=[choice[0] for choice in CAR_STATUS_CHOCIES])
     latitude = factory.Faker('latitude')
-    longitude = factory.Faker('longitude')
+    langitude = factory.Faker('longitude')
 
     @factory.post_generation
     def set_status(self, create, extracted, **kwargs):

@@ -61,12 +61,7 @@ class Order(BaseAbstractModel):
         if self.desired_start_datetime >= self.desired_finish_datetime:
             raise ValidationError("Планируемое время начала аренды должно быть раньше времени окончания аренды")
 
-    def save(self, *args, **kwargs):
-        try:
-            super().save(*args, **kwargs)
-        except IntegrityError:
-            raise ValueError("Вы уже создали заявку на этот автомобиль")
-
     class Meta:
         db_table = 'order_table'
+        app_label = 'orders'
         unique_together = ['renter', 'car']

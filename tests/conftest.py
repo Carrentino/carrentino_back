@@ -1,7 +1,8 @@
 import pytest
 from django.contrib.auth import get_user_model
-from django.test import Client
+from rest_framework.test import APIClient
 from pytest_factoryboy import register
+from rest_framework_simplejwt.tokens import AccessToken
 
 from .factories import cars
 
@@ -22,8 +23,9 @@ def user(db):
 @pytest.fixture
 def user_client(db, user):
     '''Client of registered user'''
-    client_instance = Client()
-    client_instance.force_login(user)
+    client_instance = APIClient()
+    access_token = AccessToken.for_user(user)
+    client_instance.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
     return client_instance
 
 
@@ -42,5 +44,5 @@ def unauthorized_user(db):
     user = User.objects.create_user(
         username='unauthorized_client', password='password', email='unauthorized_client@user.ru')
     user.refresh_from_db()
-    client_instance = Client()
+    client_instance = APIClient()
     return client_instance

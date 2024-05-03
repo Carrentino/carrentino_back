@@ -68,6 +68,22 @@ from .utils import check_order_status
             }
         }
     ),
+    partial_update=extend_schema(
+        description="Обновление данных заявки",
+        request=OrderUpdateSerializer,
+        responses={
+            status.HTTP_200_OK: OrderUpdateSerializer,
+            status.HTTP_409_CONFLICT: {
+                "type": "object",
+                "properties": {
+                    "detail": {"type": "string"}
+                },
+                "example": {
+                    "error": 'Планируемое время начала аренды должно быть раньше времени окончания аренды',
+                }
+            }
+        }
+    ),
     accept_order=extend_schema(
         description="Одобрение заявки арендодателем",
         responses={
@@ -169,33 +185,56 @@ class OrderViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet,
         'list_lessor_orders': OrderSerializer,
         'list_renter_orders': OrderSerializer,
         'create': OrderCreateSerializer,
-        'update': OrderUpdateSerializer
+        'update': OrderUpdateSerializer,
+        'partial_update': OrderUpdateSerializer
     }
-    permission_classes = {
+    permissions_classes = {
         'retrieve': [IsOwnerRenterOrder],
+        'update': [IsRenterOrder],
+        'partial_update': [IsRenterOrder],
         'accept_order': [IsCarOwnerOrder],
         'reject_order': [IsCarOwnerOrder],
         'cancel_order': [IsRenterOrder],
         'start_rent': [IsOwnerRenterOrder]
     }
-    permission_classes = [IsAuthenticated,]
 
     def get_serializer_class(self):
         return self.serializer_classes.get(self.action)
 
-    def get_permission(self):
-        return self.permission_classes.get(self.action, [IsAuthenticated])
+    def get_permissions(self):
+        permissions = self.permissions_classes.get(self.action, [IsAuthenticated])
+        return [permission() for permission in permissions]
 
     def create(self, request, *args, **kwargs):
         """Создание заказа"""
-        try:
-            serializer = self.get_serializer_class()
-            serializer = serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save(renter=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except ValueError:
-            return Response({"error": "Вы уже создали заявку на этот автомобиль"}, status=status.HTTP_409_CONFLICT)
+        serializer = self.get_serializer_class()
+        serializer = serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        car = serializer.validated_data.get('car')
+        if Order.objects.filter(renter=request.user, car_id=car):
+            return Response(
+                {"error": "Вы уже создали заявку на этот автомобиль"},
+                status=status.HTTP_409_CONFLICT
+            )
+        serializer.save(renter=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        order = self.get_object()
+        if order.status != Order.OrderStatus.UNDER_CONSIDERATION:
+            return Response({"error": "нельзя изменить заявку после ее одобрения"}, status=status.HTTP_403_FORBIDDEN)
+        serializer = self.get_serializer_class()
+        serializer = serializer(instance=order, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        desired_finish_datetime = serializer.validated_data.get("desired_finish_datetime", order.desired_finish_datetime)
+        desired_start_datetime = serializer.validated_data.get("desired_start_datetime", order.desired_start_datetime)
+        if desired_start_datetime > desired_finish_datetime:
+            return Response(
+                {"error": "Планируемое время начала аренды должно быть раньше времени окончания аренды"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        self.perform_update(serializer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'])
     def list_lessor_orders(self, request, car_id=None):
@@ -227,7 +266,7 @@ class OrderViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet,
             return status_checker[1]
         order.status = Order.OrderStatus.ACCEPTED
         # TODO: добавить таску для отправки уведов
-        order.save(requested_status=Order.OrderStatus.ACCEPTED)
+        order.save()
         return Response({"ok": "Заказ подтвержден"}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
@@ -245,6 +284,7 @@ class OrderViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet,
     def cancel_order(self, request, pk=None):
         order = self.get_object()
         status_checker = check_order_status(order, Order.OrderStatus.UNDER_CONSIDERATION, Order.OrderStatus.CANCELED)
+        # TODO: рарешать ли отмену заказа после одобрения 
         if not status_checker[0]:
             return status_checker[1]
         order.status = Order.OrderStatus.CANCELED

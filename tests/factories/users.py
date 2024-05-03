@@ -1,14 +1,15 @@
 import factory
-from users import models
+from django.contrib.auth import get_user_model
 from faker import Factory as FakerFactory
 
 faker = FakerFactory.create()
-
+User = get_user_model()
 
 class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = models.User
-        first_name = FakerFactory("word")
-        last_name = FakerFactory("word")
-        email = FakerFactory("email")
-        score = FakerFactory("pyfloat")
+        model = User 
+
+    first_name = factory.Faker("word")
+    last_name = factory.Faker("word")
+    email = factory.Faker("email")
+    score = factory.Faker("pyfloat")
