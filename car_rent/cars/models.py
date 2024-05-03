@@ -79,10 +79,10 @@ class Car(BaseAbstractModel):
     status = StatusField(choices=CAR_STATUS_CHOCIES,
                          default=CAR_STATUS_CHOCIES.NOT_VERIFIED)
     latitude = models.FloatField(verbose_name='Широта')
-    langitude = models.FloatField(verbose_name='Долгота')
+    longitude = models.FloatField(verbose_name='Долгота')
 
 
-class CarOptions(models.Model):
+class CarOption(models.Model):
     '''Model of car option'''
     car = models.ForeignKey(Car, on_delete=models.CASCADE,
                             related_name='car_option')

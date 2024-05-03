@@ -1,17 +1,21 @@
 from cars.models import (Brand, BrandPhoto, Car, CarModel, CarModelPhoto,
-                         CarOptions, CarPhoto)
+                         CarOption, CarPhoto)
 from rest_framework import serializers
 from users.serializers.model_serializers import UserSerializer
 
 
 class BrandPhotoSerializer(serializers.ModelSerializer):
+    '''Сериалайзер фото бренда'''
     class Meta:
         model = BrandPhoto
-        fields = ['photo',]
+        fields = [
+            'id',
+            'photo',
+        ]
 
 
 class BrandSerializer(serializers.ModelSerializer):
-    '''Serializer of brands'''
+    '''Сериалайзер бренда'''
     photos = BrandPhotoSerializer(source='brand_photo', many=True)
 
     class Meta:
@@ -25,13 +29,17 @@ class BrandSerializer(serializers.ModelSerializer):
 
 
 class CarModelPhotoSerializer(serializers.ModelSerializer):
+    '''Сериалайзер фото модели автомобиля'''
     class Meta:
         model = CarModelPhoto
-        fields = ['photo',]
+        fields = [
+            'id',
+            'photo',
+        ]
 
 
 class CarModelSerializer(serializers.ModelSerializer):
-    '''Serializer of car models'''
+    '''Сериалайзер модели автомобиля'''
     photos = CarModelPhotoSerializer(source='carmodel_photo', many=True)
     brand = BrandSerializer()
 
@@ -49,17 +57,24 @@ class CarModelSerializer(serializers.ModelSerializer):
 
 
 class CarPhotoSerializer(serializers.ModelSerializer):
+    '''Сериалайзер фотографии автомобиля'''
 
     class Meta:
         model = CarPhoto
-        fields = ['photo',]
+        fields = [
+            'id',
+            'photo',
+        ]
 
 
 class CarOptionSerializer(serializers.ModelSerializer):
-
+    '''Сериалайзер опции автомобиля'''
     class Meta:
-        model = CarOptions
-        fields = ['option',]
+        model = CarOption
+        fields = [
+            'id',
+            'option',
+        ]
 
 
 class CarSerializer(serializers.ModelSerializer):
@@ -68,7 +83,6 @@ class CarSerializer(serializers.ModelSerializer):
     car_model_id = serializers.CharField(write_only=True)
 
     owner = UserSerializer(read_only=True)
-    owner_id = serializers.CharField(write_only=True)
     status = serializers.IntegerField(read_only=True)
 
     photos = CarPhotoSerializer(source='car_photo', many=True, read_only=True)
@@ -85,29 +99,30 @@ class CarSerializer(serializers.ModelSerializer):
             'score',
             'price',
             'owner',
-            'owner_id',
             'status',
             'latitude',
-            'langitude',
+            'longitude',
             'photos',
             'options',
         ]
 
 
 class CarListSerializer(serializers.ModelSerializer):
-
+    '''Сериалайзер отображения автомобилей в списке'''
     class Meta:
+        model = Car
         fields = [
             'id',
-            'title',
+            'car_model',
             'price',
             'score',
         ]
 
 
 class CarMapSerializer(serializers.ModelSerializer):
-
+    '''Сериалайзер отображения автомобилей на карте'''
     class Meta:
+        model = Car
         fields = [
             'id',
             'latitude',
