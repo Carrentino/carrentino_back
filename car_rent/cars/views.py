@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from .choices import CAR_STATUS_CHOCIES
 from .filtersets import BrandFilterset, CarModelFilterset
 from .models import Brand, Car, CarModel, CarOption, CarPhoto
-from .permissions import CarPermission
+from .permissions import CarActionPermission, CarPermission
 from .serializers.brief_serializers import (BrandBriefSerialzer,
                                             CarModelBriefSerializer)
 from .serializers.model_serializers import (BrandSerializer, CarListSerializer,
@@ -148,11 +148,11 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
     }
     # permission_classes = [CarPermission | IsAdminUser]
     permission_classes = {
-        'create': [IsAuthenticated, IsAdminUser],
+        'create': [IsAuthenticated | IsAdminUser],
         'update': [CarPermission | IsAdminUser],
         'delete': [CarPermission | IsAdminUser],
-        'add_photo': [CarPermission | IsAdminUser],
-        'add_option': [CarPermission | IsAdminUser],
+        'add_photo': [CarActionPermission | IsAdminUser],
+        'add_option': [CarActionPermission | IsAdminUser],
     }
 
     def get_queryset(self):
@@ -184,6 +184,7 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
 
     def get_permissions(self):
         permissions = self.permission_classes.get(self.action, [AllowAny,])
+        print(permissions)
         return [permission() for permission in permissions]
 
     def create(self, request, *args, **kwargs):
@@ -197,7 +198,7 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
     @action(detail=True, methods=['post'])
     def add_photo(self, request, pk=None):
         '''Добавление фото'''
-        serializer = CarPhotoSerializer(data=request.data)
+        serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(car_id=pk)
         return Response({'ok': 'Фото добавлено'}, status=status.HTTP_201_CREATED)
@@ -205,7 +206,7 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
     @action(detail=True, methods=['post'])
     def add_option(self, request, pk=None):
         '''Добавление опции'''
-        serializer = CarOptionSerializer(data=request.data)
+        serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(car_id=pk)
         return Response({'ok': 'Опция добавлена'}, status=status.HTTP_201_CREATED)
