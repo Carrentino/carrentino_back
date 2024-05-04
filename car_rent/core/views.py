@@ -9,12 +9,12 @@ class BaseListView(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class_brief = None
 
     def get_queryset(self):
-        if self.request.GET.get('brief') and 'pk' not in self.kwargs:
+        if self.request.GET.get('brief') and self.action == 'list':
             return self.queryset_brief
         return super().get_queryset()
 
     def get_serializer_class(self):
-        if self.request.GET.get('brief') and 'pk' not in self.kwargs:
+        if self.request.GET.get('brief') and self.action == 'list':
             return self.serializer_class_brief
         return super().get_serializer_class()
 

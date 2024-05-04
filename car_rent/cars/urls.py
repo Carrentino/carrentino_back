@@ -5,12 +5,15 @@ from .views import *
 
 app_name = 'cars'
 
-router = DefaultRouter()
+router_v1 = DefaultRouter()
 
-router.register('brands', BrandView, basename='brands')
-router.register('car_models', CarModelView, basename='car_models')
-router.register('car', CarView, basename='car')
+router_v1.register('brand', BrandView, basename='brand')
+router_v1.register('car-model', CarModelView, basename='car-model')
+router_v1.register('car', CarView, basename='car')
+router_v1.register('car-photo', CarPhotoView, basename='car-photo')
+router_v1.register('car-option', CarOptionView, basename='car-option')
+
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('v1/', include(router_v1.urls))
 ]
