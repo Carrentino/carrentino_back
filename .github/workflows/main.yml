@@ -33,8 +33,16 @@ jobs:
 
     - name: pytest
       env:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: postgres
+        POSTGRES_HOST: localhost
+        POSTGRES_PORT: 5432
         SECRET_KEY: django-insecure-i3oa78jvvn)y(yvx)_zo$(uxp4$jw4c*dub1bl6#&u5mf&x_ix
       run: |
+        export DJANGO_SETTINGS_MODULE=config.settings
+        python manage.py makemigrations --dry-run --check
+        python manage.py migrate
         mkdir car_rent/logs
         pytest
 
