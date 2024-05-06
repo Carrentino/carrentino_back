@@ -32,7 +32,9 @@ jobs:
         pip install -r ./car_rent/requirements.txt 
 
     - name: pytest
-      run: pytest
+      run: |
+        mkdir logs
+        pytest
 
   build_and_push_to_docker_hub:
     name: Push Docker image to DockerHub
