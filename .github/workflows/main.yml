@@ -33,7 +33,7 @@ jobs:
 
     - name: pytest
       run: |
-        mkdir logs
+        mkdir car_rent/logs
         pytest
 
   build_and_push_to_docker_hub:
