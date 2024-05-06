@@ -184,7 +184,6 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
 
     def get_permissions(self):
         permissions = self.permission_classes.get(self.action, [AllowAny,])
-        print(permissions)
         return [permission() for permission in permissions]
 
     def create(self, request, *args, **kwargs):
@@ -215,7 +214,7 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
 class CarPhotoView(mixins.DestroyModelMixin, viewsets.GenericViewSet):
     '''Удаление фото автомобиля'''
     serializer_class = CarPhotoSerializer
-    permission_classes = [CarPermission | IsAdminUser]
+    permission_classes = [CarActionPermission | IsAdminUser]
 
     def get_queryset(self):
         return CarPhoto.objects.filter(car__owner=self.request.user)
@@ -224,7 +223,7 @@ class CarPhotoView(mixins.DestroyModelMixin, viewsets.GenericViewSet):
 class CarOptionView(mixins.DestroyModelMixin, viewsets.GenericViewSet):
     '''Удаление опции автомобиля'''
     serializer_class = CarOptionSerializer
-    permission_classes = [CarPermission | IsAdminUser]
+    permission_classes = [CarActionPermission | IsAdminUser]
 
     def get_queryset(self):
         return CarOption.objects.filter(car__owner=self.request.user)

@@ -5,11 +5,11 @@ from django.urls import reverse
 @pytest.mark.parametrize(
     'data',
     [
-        ['cars:brands-list', {'brief': True}, ['id', 'title']],
-        ['cars:brands-list', {}, ['id', 'title', 'photos', 'description']],
-        ['cars:car_models-list', {'brief': True}, ['id', 'title']],
-        ['cars:car_models-list', {}, ['title', 'type_of_fuel',
-                                      'id', 'brand', 'hp', 'photos', 'fuel_consumption']],
+        ['cars:brand-list', {'brief': True}, ['id', 'title']],
+        ['cars:brand-list', {}, ['id', 'title', 'photos', 'description']],
+        ['cars:car-model-list', {'brief': True}, ['id', 'title']],
+        ['cars:car-model-list', {}, ['title', 'type_of_fuel',
+                                     'id', 'brand', 'hp', 'photos', 'fuel_consumption']],
     ]
 )
 def test_advanced_cars_list(data, user_client, client, car_model_factory, brand_factory):
@@ -30,12 +30,12 @@ def test_advanced_cars_list(data, user_client, client, car_model_factory, brand_
 @pytest.mark.parametrize(
     'data',
     [
-        ['cars:brands-detail', 2, ['id', 'title', 'photos', 'description']],
-        ['cars:car_models-detail', 1, ['title', 'type_of_fuel',
-                                       'id', 'brand', 'hp', 'photos', 'fuel_consumption']],
+        ['cars:brand-detail', 2, ['id', 'title', 'photos', 'description']],
+        ['cars:car-model-detail', 1, ['title', 'type_of_fuel',
+                                      'id', 'brand', 'hp', 'photos', 'fuel_consumption']],
     ]
 )
-def test_access_cars_retrieve(data, user_client, client, car_model_factory, brand_factory):
+def test_advanced_cars_retrieve(data, user_client, client, car_model_factory, brand_factory):
     url, pk, fields = data
     car_model_factory(id=pk)
     brand_factory(id=pk)

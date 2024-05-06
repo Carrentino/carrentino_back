@@ -84,6 +84,8 @@ class CarSerializer(serializers.ModelSerializer):
 
     owner = UserSerializer(read_only=True)
     status = serializers.IntegerField(read_only=True)
+    score = serializers.DecimalField(
+        decimal_places=2, max_digits=3, read_only=True)
 
     photos = CarPhotoSerializer(source='car_photo', many=True, read_only=True)
     options = CarOptionSerializer(

@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
-from rest_framework.test import APIClient
 from pytest_factoryboy import register
+from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import AccessToken
 
 from .factories import cars
@@ -10,6 +10,7 @@ User = get_user_model()
 
 register(cars.BrandFactory)
 register(cars.CarModelFactory)
+register(cars.CarFactory)
 
 
 @pytest.fixture
@@ -53,3 +54,18 @@ def banned_user(db):
     """Забаненный пользователь"""
     user = User.objects.create_user(
         username='unauthorized_client', password='password', email='unauthorized_client@user.ru', status=User.UserStatus.BANNED)
+    return user
+
+
+@pytest.fixture
+def run_common_fixtures(request):
+
+    def _run_common_fixtures(common_fixtures):
+        for item in common_fixtures:
+            item_type = type(item)
+            if item_type is str:
+                request.getfixturevalue(item)
+            if item_type is dict:
+                key, value = next(iter(item.items()))
+                request.getfixturevalue(key)(**value)
+    return _run_common_fixtures
