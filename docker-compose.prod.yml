@@ -9,7 +9,7 @@ services:
   db:
     container_name: car_rent_db
     image: postgres:15
-    env_file: .env_file
+    env_file: .env
     volumes:
       - pg_data:/var/lib/postgresql/data
   backend:
@@ -37,11 +37,12 @@ services:
     volumes:
       - redis_data:/data
   celery:
-    container_name: car_rent_celery
-    image: grigoleg/celery
-    command: celery -A celery_conf.app worker -l info
-    volumes:
-      - .:/app
+    image: grigoleg/car_rent_backend
+    hostname: worker
+    entrypoint: celery
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    command: -A celery_conf.app worker -l info
     depends_on:
-      - backend
       - redis
