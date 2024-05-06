@@ -5,8 +5,8 @@ from django.urls import reverse
 @pytest.mark.parametrize(
     'url',
     [
-        'cars:brands-list',
-        'cars:car_models-list',
+        'cars:brand-list',
+        'cars:car-model-list',
     ]
 )
 def test_access_cars_list(url, user_client, client):
@@ -22,8 +22,8 @@ def test_access_cars_list(url, user_client, client):
 @pytest.mark.parametrize(
     'data',
     [
-        ['cars:brands-detail', 2],
-        ['cars:car_models-detail', 1],
+        ['cars:brand-detail', 2],
+        ['cars:car-model-detail', 1],
     ]
 )
 def test_access_cars_retrieve(data, user_client, client, car_model_factory, brand_factory):
