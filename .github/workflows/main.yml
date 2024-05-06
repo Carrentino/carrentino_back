@@ -122,7 +122,7 @@ jobs:
 
   send_failure_message:
     runs-on: ubuntu-22.04
-    if: failure()
+    if: ${{ failure() }}
     steps:
     - name: Send message
       uses: appleboy/telegram-action@master
