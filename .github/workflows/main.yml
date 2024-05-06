@@ -40,10 +40,12 @@ jobs:
         POSTGRES_PORT: 5432
         SECRET_KEY: django-insecure-i3oa78jvvn)y(yvx)_zo$(uxp4$jw4c*dub1bl6#&u5mf&x_ix
       run: |
+        cd car_rent
         export DJANGO_SETTINGS_MODULE=config.settings
         python manage.py makemigrations --dry-run --check
         python manage.py migrate
-        mkdir car_rent/logs
+        mkdir logs
+        cd ../
         pytest
 
   build_and_push_to_docker_hub:
