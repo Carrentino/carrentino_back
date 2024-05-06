@@ -32,6 +32,8 @@ jobs:
         pip install -r ./car_rent/requirements.txt 
 
     - name: pytest
+      env:
+        SECRET_KEY: django-insecure-i3oa78jvvn)y(yvx)_zo$(uxp4$jw4c*dub1bl6#&u5mf&x_ix
       run: |
         mkdir car_rent/logs
         pytest
@@ -109,7 +111,7 @@ jobs:
 
   send_success_message:
     runs-on: ubuntu-22.04
-    if: success()
+    needs: deploy
     steps:
     - name: Send message
       uses: appleboy/telegram-action@master
