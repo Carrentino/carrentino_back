@@ -106,13 +106,25 @@ jobs:
           sudo docker compose -f docker-compose.prod.yml down
           sudo docker compose -f docker-compose.prod.yml up -d
           sudo docker compose -f docker-compose.prod.yml exec backend python manage.py migrate
-  send_message:
-    runs-on: ubuntu-latest
-    needs: deploy
+
+  send_success_message:
+    runs-on: ubuntu-22.04
+    if: success()
     steps:
     - name: Send message
       uses: appleboy/telegram-action@master
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: заебок, все по кайфу
+        message: заебок, все по кайфу ✅
+
+  send_failure_message:
+    runs-on: ubuntu-22.04
+    if: failure()
+    steps:
+    - name: Send message
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_TO }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        message: Ебаный рот, пиздуй дебажить ❌
