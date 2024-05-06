@@ -124,7 +124,7 @@ jobs:
 
   send_failure_message:
     runs-on: ubuntu-22.04
-    if: ${{ failure() }}
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     steps:
     - name: Send message
       uses: appleboy/telegram-action@master
