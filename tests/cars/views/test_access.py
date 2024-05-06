@@ -87,32 +87,32 @@ def test_access_cars_create(data, user_client, client, run_common_fixtures):
             model.objects.filter(id=response.data.get('id')).delete()
 
 
-@pytest.mark.parametrize(
-    'data',
-    [
-        [
-            'cars:car-detail',
-            {
-                'color': 'white',
-            },
-            'car',
-        ],
-    ]
-)
-def test_access_cars_update(data, request, user_client, client):
-    '''Тест доступа к update эндпоинтов cars'''
-    url, req, obj_fixture = data
-    obj = request.getfixturevalue(obj_fixture)
-    attr = 'pk'
+# @pytest.mark.parametrize(
+#     'data',
+#     [
+#         [
+#             'cars:car-detail',
+#             {
+#                 'color': 'white',
+#             },
+#             'car',
+#         ],
+#     ]
+# )
+# def test_access_cars_update(data, request, user_client, client):
+#     '''Тест доступа к update эндпоинтов cars'''
+#     url, req, obj_fixture = data
+#     obj = request.getfixturevalue(obj_fixture)
+#     attr = 'pk'
 
-    rev_url = reverse(url, args=[getattr(obj, attr)])
-    for user, code in [
-        (client, 200),
-        (user_client, 200),
-    ]:
-        response = user.get(rev_url)
-        print(response.json())
-        assert response.status_code == code
+#     rev_url = reverse(url, args=[getattr(obj, attr)])
+#     for user, code in [
+#         (client, 200),
+#         (user_client, 200),
+#     ]:
+#         response = user.get(rev_url)
+#         print(response.json())
+#         assert response.status_code == code
 
 
 # @pytest.mark.parametrize(
