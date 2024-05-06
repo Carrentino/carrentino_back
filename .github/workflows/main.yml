@@ -44,8 +44,8 @@ jobs:
         export DJANGO_SETTINGS_MODULE=config.settings
         python manage.py makemigrations --dry-run --check
         python manage.py migrate
-        mkdir logs
         cd ../
+        mkdir car_rent/logs
         pytest
 
   build_and_push_to_docker_hub:
