@@ -3,7 +3,7 @@ name: Carrentino CI/CD
 on:
   push:
     branches:
-      - test_ci
+      - feature/cicd
 
 jobs:
   tests:
