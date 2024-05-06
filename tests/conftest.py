@@ -46,3 +46,10 @@ def unauthorized_user(db):
     user.refresh_from_db()
     client_instance = APIClient()
     return client_instance
+
+
+@pytest.fixture
+def banned_user(db):
+    """Забаненный пользователь"""
+    user = User.objects.create_user(
+        username='unauthorized_client', password='password', email='unauthorized_client@user.ru', status=User.UserStatus.BANNED)

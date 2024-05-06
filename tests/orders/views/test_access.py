@@ -8,9 +8,10 @@ import pytest
 
 from tests.factories.orders import OrderFactory
 from tests.factories.cars import CarFactory
-from tests.factories.users import UserFactory
 from car_rent.cars.choices import CAR_STATUS_CHOCIES
 
+
+# TODO: добавить тесты на запбаненного юзера
 
 @pytest.mark.parametrize(
     "url, args", [

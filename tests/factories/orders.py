@@ -19,7 +19,7 @@ class OrderFactory(factory.django.DjangoModelFactory):
     desired_start_datetime = factory.LazyFunction(timezone.now)
     start_rent_time = factory.LazyFunction(timezone.now)
     finish_datetime = factory.LazyFunction(timezone.now)
-    status = factory.Faker('random_element', elements=[choice[0] for choice in models.Order.OrderStatus])
+    status = factory.Faker('random_element', elements=[choice[0] for choice in models.ORDER_STATUSES])
     is_renter_start_order = factory.Faker('boolean')
     is_lessor_start_order = factory.Faker('boolean')
 

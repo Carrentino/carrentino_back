@@ -12,6 +12,7 @@ from .permissions import IsOwnerRenterOrder, IsCarOwnerOrder, IsRenterOrder
 from .models import Order
 from .serializers import OrderSerializer, OrderRetriveSerializer, OrderCreateSerializer, OrderUpdateSerializer
 from .utils import check_order_status
+from .choices import ORDER_STATUSES
 
 
 @extend_schema_view(
@@ -211,7 +212,7 @@ class OrderViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet,
         serializer = serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         car = serializer.validated_data.get('car')
-        if Order.objects.filter(renter=request.user, car_id=car):
+        if Order.objects.filter(renter=request.user, car_id=car).exists():
             return Response(
                 {"error": "Вы уже создали заявку на этот автомобиль"},
                 status=status.HTTP_409_CONFLICT
@@ -221,14 +222,14 @@ class OrderViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet,
 
     def update(self, request, *args, **kwargs):
         order = self.get_object()
-        if order.status != Order.OrderStatus.UNDER_CONSIDERATION:
+        if order.status != ORDER_STATUSES.UNDER_CONSIDERATION:
             return Response({"error": "нельзя изменить заявку после ее одобрения"}, status=status.HTTP_403_FORBIDDEN)
         serializer = self.get_serializer_class()
         serializer = serializer(instance=order, data=request.data)
         serializer.is_valid(raise_exception=True)
         desired_finish_datetime = serializer.validated_data.get("desired_finish_datetime", order.desired_finish_datetime)
         desired_start_datetime = serializer.validated_data.get("desired_start_datetime", order.desired_start_datetime)
-        if desired_start_datetime > desired_finish_datetime:
+        if desired_start_datetime >= desired_finish_datetime:
             return Response(
                 {"error": "Планируемое время начала аренды должно быть раньше времени окончания аренды"},
                 status=status.HTTP_400_BAD_REQUEST
@@ -261,10 +262,10 @@ class OrderViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet,
     @action(detail=True, methods=['post'])
     def accept_order(self, request, pk=None):
         order = self.get_object()
-        status_checker = check_order_status(order, Order.OrderStatus.UNDER_CONSIDERATION, Order.OrderStatus.ACCEPTED)
-        if not status_checker[0]:
-            return status_checker[1]
-        order.status = Order.OrderStatus.ACCEPTED
+        status_checker = check_order_status(order, ORDER_STATUSES.UNDER_CONSIDERATION, ORDER_STATUSES.ACCEPTED)
+        if status_checker.get("response"):
+            return status_checker["response"]
+        order.status = ORDER_STATUSES.ACCEPTED
         # TODO: добавить таску для отправки уведов
         order.save()
         return Response({"ok": "Заказ подтвержден"}, status=status.HTTP_200_OK)
@@ -272,10 +273,10 @@ class OrderViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet,
     @action(detail=True, methods=['post'])
     def reject_order(self, request, pk=None):
         order = self.get_object()
-        status_checker = check_order_status(order, Order.OrderStatus.UNDER_CONSIDERATION, Order.OrderStatus.REJECTED)
-        if not status_checker[0]:
-            return status_checker[1]
-        order.status = Order.OrderStatus.REJECTED
+        status_checker = check_order_status(order, ORDER_STATUSES.UNDER_CONSIDERATION, ORDER_STATUSES.REJECTED)
+        if status_checker.get("response"):
+            return status_checker["response"]
+        order.status = ORDER_STATUSES.REJECTED
         # TODO: добавить таску для отправки уведов
         order.save()
         return Response({"ok": "Заказ отклонен"}, status=status.HTTP_200_OK)
@@ -283,11 +284,11 @@ class OrderViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet,
     @action(detail=True, methods=['post'])
     def cancel_order(self, request, pk=None):
         order = self.get_object()
-        status_checker = check_order_status(order, Order.OrderStatus.UNDER_CONSIDERATION, Order.OrderStatus.CANCELED)
+        status_checker = check_order_status(order, ORDER_STATUSES.UNDER_CONSIDERATION, ORDER_STATUSES.CANCELED)
         # TODO: рарешать ли отмену заказа после одобрения 
-        if not status_checker[0]:
-            return status_checker[1]
-        order.status = Order.OrderStatus.CANCELED
+        if status_checker.get("response"):
+            return status_checker["response"]
+        order.status = ORDER_STATUSES.CANCELED
         # TODO: добавить таску для отправки уведов
         order.save()
         return Response({"ok": "Заказ отменен"}, status=status.HTTP_200_OK)
@@ -295,15 +296,15 @@ class OrderViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet,
     @action(detail=True, methods=['post'])
     def start_rent(self, request, pk=None):
         order = self.get_object()
-        status_checker = check_order_status(order, Order.OrderStatus.ACCEPTED, Order.OrderStatus.IN_PROGRESS)
-        if not status_checker[0]:
-            return status_checker[1]
+        status_checker = check_order_status(order, ORDER_STATUSES.ACCEPTED, ORDER_STATUSES.IN_PROGRESS)
+        if status_checker.get("response"):
+            return status_checker["response"]
         if request.user == order.renter:
             order.is_renter_start_order = True
         else:
             order.is_lessor_start_order = True
         if order.is_lessor_start_order and order.is_renter_start_order:
-            order.status = Order.OrderStatus.IN_PROGRESS
+            order.status = ORDER_STATUSES.IN_PROGRESS
         order.save()
         # TODO: добавить уведы
         # TODO: Попиздеть с егором за ответы

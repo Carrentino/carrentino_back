@@ -1,21 +1,15 @@
-from django.db import IntegrityError, models
+from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from core.models import BaseAbstractModel
 from users.models import User
 from cars.models import Car
+from .choices import ORDER_STATUSES
 
 
 class Order(BaseAbstractModel):
     """Model of order"""
-    class OrderStatus(models.TextChoices):
-        UNDER_CONSIDERATION = 'UC', _("На рассмотрении")
-        ACCEPTED = 'AD', _("Одобрен")
-        IN_PROGRESS = 'IP', _("Выполняется")
-        CANCELED = 'CD', _("Отменен")
-        REJECTED = 'RD', _("Отклонен")
-        FINISHED = 'FD', _("Завершен")
     car = models.ForeignKey(
         Car, on_delete=models.CASCADE,
         verbose_name="Арендованный автомобиль",
@@ -43,8 +37,8 @@ class Order(BaseAbstractModel):
     status = models.CharField(
         verbose_name="Статус",
         max_length=2,
-        choices=OrderStatus.choices,
-        default=OrderStatus.UNDER_CONSIDERATION,
+        choices=ORDER_STATUSES,
+        default=ORDER_STATUSES.UNDER_CONSIDERATION,
     )
     is_renter_start_order = models.BooleanField(
         blank=True, default=False,

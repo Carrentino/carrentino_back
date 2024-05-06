@@ -34,19 +34,19 @@ def test_renter_orders(user_client, user):
 
 @pytest.mark.parametrize(
         "url, current_status, response_status", [
-            ("orders:order-accept-order", models.Order.OrderStatus.UNDER_CONSIDERATION, status.HTTP_200_OK),
-            ("orders:order-accept-order", models.Order.OrderStatus.ACCEPTED, status.HTTP_409_CONFLICT),
-            ("orders:order-accept-order", models.Order.OrderStatus.IN_PROGRESS, status.HTTP_409_CONFLICT),
-            ("orders:order-accept-order", models.Order.OrderStatus.CANCELED, status.HTTP_409_CONFLICT),
-            ("orders:order-accept-order", models.Order.OrderStatus.REJECTED, status.HTTP_409_CONFLICT),
-            ("orders:order-accept-order", models.Order.OrderStatus.FINISHED, status.HTTP_409_CONFLICT),
+            ("orders:order-accept-order", models.ORDER_STATUSES.UNDER_CONSIDERATION, status.HTTP_200_OK),
+            ("orders:order-accept-order", models.ORDER_STATUSES.ACCEPTED, status.HTTP_409_CONFLICT),
+            ("orders:order-accept-order", models.ORDER_STATUSES.IN_PROGRESS, status.HTTP_409_CONFLICT),
+            ("orders:order-accept-order", models.ORDER_STATUSES.CANCELED, status.HTTP_409_CONFLICT),
+            ("orders:order-accept-order", models.ORDER_STATUSES.REJECTED, status.HTTP_409_CONFLICT),
+            ("orders:order-accept-order", models.ORDER_STATUSES.FINISHED, status.HTTP_409_CONFLICT),
 
-            ("orders:order-reject-order", models.Order.OrderStatus.UNDER_CONSIDERATION, status.HTTP_200_OK),
-            ("orders:order-reject-order", models.Order.OrderStatus.ACCEPTED, status.HTTP_409_CONFLICT),
-            ("orders:order-reject-order", models.Order.OrderStatus.IN_PROGRESS, status.HTTP_409_CONFLICT),
-            ("orders:order-reject-order", models.Order.OrderStatus.CANCELED, status.HTTP_409_CONFLICT),
-            ("orders:order-reject-order", models.Order.OrderStatus.REJECTED, status.HTTP_409_CONFLICT),
-            ("orders:order-reject-order", models.Order.OrderStatus.FINISHED, status.HTTP_409_CONFLICT),
+            ("orders:order-reject-order", models.ORDER_STATUSES.UNDER_CONSIDERATION, status.HTTP_200_OK),
+            ("orders:order-reject-order", models.ORDER_STATUSES.ACCEPTED, status.HTTP_409_CONFLICT),
+            ("orders:order-reject-order", models.ORDER_STATUSES.IN_PROGRESS, status.HTTP_409_CONFLICT),
+            ("orders:order-reject-order", models.ORDER_STATUSES.CANCELED, status.HTTP_409_CONFLICT),
+            ("orders:order-reject-order", models.ORDER_STATUSES.REJECTED, status.HTTP_409_CONFLICT),
+            ("orders:order-reject-order", models.ORDER_STATUSES.FINISHED, status.HTTP_409_CONFLICT),
         ]
 )
 def test_owner_accept_reject_order(user_client, user, url, current_status, response_status):
@@ -55,21 +55,21 @@ def test_owner_accept_reject_order(user_client, user, url, current_status, respo
     response = user_client.post(reverse(url, kwargs={'pk': order.id}))
     if response_status == status.HTTP_200_OK and url == "orders:order-accept-order":
         refresh_order = models.Order.objects.get(id=order.id)
-        assert refresh_order.status == models.Order.OrderStatus.ACCEPTED
+        assert refresh_order.status == models.ORDER_STATUSES.ACCEPTED
     if response_status == status.HTTP_200_OK and url == "orders:order-reject-order":
         refresh_order = models.Order.objects.get(id=order.id)
-        assert refresh_order.status == models.Order.OrderStatus.REJECTED
+        assert refresh_order.status == models.ORDER_STATUSES.REJECTED
     assert response.status_code == response_status
 
 
 @pytest.mark.parametrize(
         "current_status, response_status", [
-            (models.Order.OrderStatus.UNDER_CONSIDERATION, status.HTTP_200_OK),
-            (models.Order.OrderStatus.ACCEPTED, status.HTTP_409_CONFLICT),
-            (models.Order.OrderStatus.IN_PROGRESS, status.HTTP_409_CONFLICT),
-            (models.Order.OrderStatus.CANCELED, status.HTTP_409_CONFLICT),
-            (models.Order.OrderStatus.REJECTED, status.HTTP_409_CONFLICT),
-            (models.Order.OrderStatus.FINISHED, status.HTTP_409_CONFLICT),
+            (models.ORDER_STATUSES.UNDER_CONSIDERATION, status.HTTP_200_OK),
+            (models.ORDER_STATUSES.ACCEPTED, status.HTTP_409_CONFLICT),
+            (models.ORDER_STATUSES.IN_PROGRESS, status.HTTP_409_CONFLICT),
+            (models.ORDER_STATUSES.CANCELED, status.HTTP_409_CONFLICT),
+            (models.ORDER_STATUSES.REJECTED, status.HTTP_409_CONFLICT),
+            (models.ORDER_STATUSES.FINISHED, status.HTTP_409_CONFLICT),
         ]
 )
 def test_renter_cancel_order(user_client, user, current_status, response_status):
@@ -77,18 +77,18 @@ def test_renter_cancel_order(user_client, user, current_status, response_status)
     response = user_client.post(reverse("orders:order-cancel-order", kwargs={'pk': order.id}))
     if response_status == status.HTTP_200_OK:
         refresh_order = models.Order.objects.get(id=order.id)
-        assert refresh_order.status == models.Order.OrderStatus.CANCELED
+        assert refresh_order.status == models.ORDER_STATUSES.CANCELED
     assert response.status_code == response_status
 
 
 @pytest.mark.parametrize(
         "current_status, response_status, is_renter_start_order", [
-            (models.Order.OrderStatus.UNDER_CONSIDERATION, status.HTTP_409_CONFLICT, False),
-            (models.Order.OrderStatus.ACCEPTED, status.HTTP_200_OK, True),
-            (models.Order.OrderStatus.IN_PROGRESS, status.HTTP_409_CONFLICT, False),
-            (models.Order.OrderStatus.CANCELED, status.HTTP_409_CONFLICT, False),
-            (models.Order.OrderStatus.REJECTED, status.HTTP_409_CONFLICT, False),
-            (models.Order.OrderStatus.FINISHED, status.HTTP_409_CONFLICT, False),
+            (models.ORDER_STATUSES.UNDER_CONSIDERATION, status.HTTP_409_CONFLICT, False),
+            (models.ORDER_STATUSES.ACCEPTED, status.HTTP_200_OK, True),
+            (models.ORDER_STATUSES.IN_PROGRESS, status.HTTP_409_CONFLICT, False),
+            (models.ORDER_STATUSES.CANCELED, status.HTTP_409_CONFLICT, False),
+            (models.ORDER_STATUSES.REJECTED, status.HTTP_409_CONFLICT, False),
+            (models.ORDER_STATUSES.FINISHED, status.HTTP_409_CONFLICT, False),
         ]
 )
 def test_lessor_start_rent(user_client, user, current_status, response_status, is_renter_start_order):
@@ -99,18 +99,18 @@ def test_lessor_start_rent(user_client, user, current_status, response_status, i
     if response_status == status.HTTP_200_OK:
         refresh_order = models.Order.objects.get(id=order.id)
         assert refresh_order.is_lessor_start_order is True
-        assert refresh_order.status == models.Order.OrderStatus.IN_PROGRESS
+        assert refresh_order.status == models.ORDER_STATUSES.IN_PROGRESS
     assert response.status_code == response_status
 
 
 @pytest.mark.parametrize(
         "current_status, response_status, is_lessor_start_order", [
-            (models.Order.OrderStatus.UNDER_CONSIDERATION, status.HTTP_409_CONFLICT, False),
-            (models.Order.OrderStatus.ACCEPTED, status.HTTP_200_OK, True),
-            (models.Order.OrderStatus.IN_PROGRESS, status.HTTP_409_CONFLICT, False),
-            (models.Order.OrderStatus.CANCELED, status.HTTP_409_CONFLICT, False),
-            (models.Order.OrderStatus.REJECTED, status.HTTP_409_CONFLICT, False),
-            (models.Order.OrderStatus.FINISHED, status.HTTP_409_CONFLICT, False),
+            (models.ORDER_STATUSES.UNDER_CONSIDERATION, status.HTTP_409_CONFLICT, False),
+            (models.ORDER_STATUSES.ACCEPTED, status.HTTP_200_OK, True),
+            (models.ORDER_STATUSES.IN_PROGRESS, status.HTTP_409_CONFLICT, False),
+            (models.ORDER_STATUSES.CANCELED, status.HTTP_409_CONFLICT, False),
+            (models.ORDER_STATUSES.REJECTED, status.HTTP_409_CONFLICT, False),
+            (models.ORDER_STATUSES.FINISHED, status.HTTP_409_CONFLICT, False),
         ]
 )
 def test_renter_start_rent(user_client, user, current_status, response_status, is_lessor_start_order):
@@ -121,18 +121,18 @@ def test_renter_start_rent(user_client, user, current_status, response_status, i
     if response_status == status.HTTP_200_OK:
         refresh_order = models.Order.objects.get(id=order.id)
         assert refresh_order.is_renter_start_order is True
-        assert refresh_order.status == models.Order.OrderStatus.IN_PROGRESS
+        assert refresh_order.status == models.ORDER_STATUSES.IN_PROGRESS
     assert response.status_code == response_status
 
 
 @pytest.mark.parametrize(
         "current_status, response_status", [
-            (models.Order.OrderStatus.UNDER_CONSIDERATION, status.HTTP_200_OK),
-            (models.Order.OrderStatus.ACCEPTED, status.HTTP_403_FORBIDDEN),
-            (models.Order.OrderStatus.IN_PROGRESS, status.HTTP_403_FORBIDDEN),
-            (models.Order.OrderStatus.CANCELED, status.HTTP_403_FORBIDDEN),
-            (models.Order.OrderStatus.REJECTED, status.HTTP_403_FORBIDDEN),
-            (models.Order.OrderStatus.FINISHED, status.HTTP_403_FORBIDDEN),
+            (models.ORDER_STATUSES.UNDER_CONSIDERATION, status.HTTP_200_OK),
+            (models.ORDER_STATUSES.ACCEPTED, status.HTTP_403_FORBIDDEN),
+            (models.ORDER_STATUSES.IN_PROGRESS, status.HTTP_403_FORBIDDEN),
+            (models.ORDER_STATUSES.CANCELED, status.HTTP_403_FORBIDDEN),
+            (models.ORDER_STATUSES.REJECTED, status.HTTP_403_FORBIDDEN),
+            (models.ORDER_STATUSES.FINISHED, status.HTTP_403_FORBIDDEN),
         ]
 )
 def test_put_update_order_after_consideration(user_client, user, current_status, response_status):
@@ -145,6 +145,21 @@ def test_put_update_order_after_consideration(user_client, user, current_status,
     if response_status == status.HTTP_200_OK:
         refresh_order = models.Order.objects.get(id=order.id)
         assert refresh_order.desired_finish_datetime == new_desired_finish_datetime
+    assert response_put.status_code == response_status
+
+
+@pytest.mark.parametrize(
+    "current_status, response_status", [
+        (models.ORDER_STATUSES.UNDER_CONSIDERATION, status.HTTP_200_OK),
+        (models.ORDER_STATUSES.ACCEPTED, status.HTTP_403_FORBIDDEN),
+        (models.ORDER_STATUSES.IN_PROGRESS, status.HTTP_403_FORBIDDEN),
+        (models.ORDER_STATUSES.CANCELED, status.HTTP_403_FORBIDDEN),
+        (models.ORDER_STATUSES.REJECTED, status.HTTP_403_FORBIDDEN),
+        (models.ORDER_STATUSES.FINISHED, status.HTTP_403_FORBIDDEN),
+    ]
+)
+def test_patch_update_order_after_consideration(user_client, user, current_status, response_status):
+    order = OrderFactory(renter=user, set_status=current_status)
     new_desired_finish_datetime = timezone.now()
     data_to_send = {
         "desired_finish_datetime": new_desired_finish_datetime
@@ -153,5 +168,4 @@ def test_put_update_order_after_consideration(user_client, user, current_status,
     if response_status == status.HTTP_200_OK:
         refresh_order = models.Order.objects.get(id=order.id)
         assert refresh_order.desired_finish_datetime == new_desired_finish_datetime
-    assert response_put.status_code == response_status
     assert response_patch.status_code == response_status
