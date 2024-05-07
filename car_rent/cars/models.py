@@ -113,7 +113,7 @@ class BrandPhoto(models.Model):
 
 class CarPhoto(models.Model):
     '''Model of User's car photo'''
-    photo = models.ImageField(upload_to='cars', verbose_name='Фото')
+    photo = models.FileField(upload_to='cars', verbose_name='Фото')
     car = models.ForeignKey(Car, on_delete=models.CASCADE,
                             verbose_name='Автомобиль', related_name='car_photo')
 

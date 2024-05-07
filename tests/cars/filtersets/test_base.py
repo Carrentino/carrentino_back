@@ -6,7 +6,7 @@ from cars.models import Brand, CarModel
 @pytest.mark.parametrize(
     'data',
     [
-        [{'title': 'B'}, 1],
+        [{'title': 'BMW'}, 1],
     ]
 )
 def test_brands_filterset(db, setup, data):

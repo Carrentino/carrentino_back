@@ -5,11 +5,20 @@ class CarPermission(BasePermission):
     '''Пермишен для автомобиля'''
 
     def has_object_permission(self, request, view, obj):
-        return (obj.owner == request.user or request.method in SAFE_METHODS)
+        return ((request.user and obj.owner == request.user) or request.method in SAFE_METHODS)
 
 
 class CarActionPermission(BasePermission):
     '''Пермишен для добавления связаных объектов для автомобиля'''
 
     def has_object_permission(self, request, view, obj):
-        return (obj.car.owner == request.user or request.method in SAFE_METHODS)
+        return (request.user.is_authenticated and (obj.owner == request.user or request.method in SAFE_METHODS))
+
+
+class CarForeignPermission(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        print(obj.car.owner == request.user)
+        return (obj.car.owner == request.user)

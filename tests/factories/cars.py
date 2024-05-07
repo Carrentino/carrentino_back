@@ -36,8 +36,7 @@ class CarFactory(factory.django.DjangoModelFactory):
                           right_digits=2, positive=True, min_value=1, max_value=5)
     price = factory.Faker("pyint")
     owner = factory.SubFactory(UserFactory)
-    status = factory.Faker(
-        'random_element', elements=CAR_STATUS_CHOCIES.values())
+    status = CAR_STATUS_CHOCIES.VERIFIED
     latitude = factory.Faker('latitude')
     longitude = factory.Faker('longitude')
 
@@ -45,3 +44,18 @@ class CarFactory(factory.django.DjangoModelFactory):
     # def set_status(self, create, extracted, **kwargs):
     #     if extracted:
     #         self.status = extracted
+
+
+class CarOptionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.CarOption
+
+    car = factory.SubFactory(CarFactory)
+    option = factory.Faker('word')
+
+
+class CarPhotoFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.CarPhoto
+    car = factory.SubFactory(CarFactory)
+    photo = factory.django.FileField(name='test_photo.jpg')
