@@ -8,10 +8,11 @@ from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
-from .choices import CAR_STATUS_CHOCIES
+from .choices import CAR_STATUS_CHOICES
 from .filtersets import BrandFilterset, CarModelFilterset
 from .models import Brand, Car, CarModel, CarOption, CarPhoto
-from .permissions import CarActionPermission, CarPermission
+from .permissions import (CarActionPermission, CarForeignPermission,
+                          CarPermission)
 from .serializers.brief_serializers import (BrandBriefSerialzer,
                                             CarModelBriefSerializer)
 from .serializers.model_serializers import (BrandSerializer, CarListSerializer,
@@ -123,7 +124,7 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
               mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
               mixins.DestroyModelMixin, viewsets.GenericViewSet):
     '''Вьюсет для автомобилей'''
-    queryset = Car.objects.filter(status=CAR_STATUS_CHOCIES.VERIFIED).select_related(
+    queryset = Car.objects.filter(status=CAR_STATUS_CHOICES.VERIFIED).select_related(
         'car_model',
         'car_model__brand',
         'owner'
@@ -137,6 +138,21 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
         'list': ('id', 'car_model__title', 'price', 'score'),
         'map': ('id', 'latitude', 'longitude'),
     }
+    select_related_fields = {
+        'list': ('car_model',),
+    }
+    select_related_default_fields = (
+        'car_model',
+        'car_model__brand',
+        'owner'
+    )
+    prefetch_related_default_fields = (
+        'car_photo',
+        'car_option',
+        'car_model__carmodel_photo',
+        'car_model__brand__brand_photo',
+        'car_option'
+    )
     serializer_class = CarSerializer
     serializer_classes = {
         # views
@@ -149,8 +165,8 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
     # permission_classes = [CarPermission | IsAdminUser]
     permission_classes = {
         'create': [IsAuthenticated | IsAdminUser],
-        'update': [CarPermission | IsAdminUser],
-        'delete': [CarPermission | IsAdminUser],
+        'partial_update': [CarPermission | IsAdminUser],
+        'destroy': [CarPermission | IsAdminUser],
         'add_photo': [CarActionPermission | IsAdminUser],
         'add_option': [CarActionPermission | IsAdminUser],
     }
@@ -162,12 +178,14 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
         if self.action == 'list':  # Проверяем запрос на экшн лист, если нет то стандартный кверисет
             # Подтягиваем аргументы из дикта по указанному параметру либо None
             fields = self.queryset_only_fields.get(view, None)
+            select_fields = self.select_related_fields.get(view, None)
             if fields is not None:  # Если None то такого отображения не сущетсвует
-                return self.queryset.only(*fields)  # онлим по аргументам
+                field_queryset = self.queryset  # онлим по аргументам
+                return field_queryset if select_fields is None else field_queryset.select_related(*select_fields)
             else:
                 raise NotFound(
                     {'error': 'Такого варианта для view не сущетсвует. Возможные варианты list, map'})
-        return self.queryset
+        return self.queryset.select_related(*self.select_related_default_fields).prefetch_related(*self.prefetch_related_default_fields)
 
     def get_serializer_class(self):
         '''сюда не лезть без острой необходимости. тут царит гармония'''
@@ -184,7 +202,6 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
 
     def get_permissions(self):
         permissions = self.permission_classes.get(self.action, [AllowAny,])
-        print(permissions)
         return [permission() for permission in permissions]
 
     def create(self, request, *args, **kwargs):
@@ -198,24 +215,26 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
     @action(detail=True, methods=['post'])
     def add_photo(self, request, pk=None):
         '''Добавление фото'''
+        car = self.get_object()
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(car_id=pk)
+        serializer.save(car=car)
         return Response({'ok': 'Фото добавлено'}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
     def add_option(self, request, pk=None):
         '''Добавление опции'''
+        car = self.get_object()
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(car_id=pk)
+        serializer.save(car=car)
         return Response({'ok': 'Опция добавлена'}, status=status.HTTP_201_CREATED)
 
 
 class CarPhotoView(mixins.DestroyModelMixin, viewsets.GenericViewSet):
     '''Удаление фото автомобиля'''
     serializer_class = CarPhotoSerializer
-    permission_classes = [CarPermission | IsAdminUser]
+    permission_classes = [CarForeignPermission | IsAdminUser]
 
     def get_queryset(self):
         return CarPhoto.objects.filter(car__owner=self.request.user)
@@ -224,7 +243,7 @@ class CarPhotoView(mixins.DestroyModelMixin, viewsets.GenericViewSet):
 class CarOptionView(mixins.DestroyModelMixin, viewsets.GenericViewSet):
     '''Удаление опции автомобиля'''
     serializer_class = CarOptionSerializer
-    permission_classes = [CarPermission | IsAdminUser]
+    permission_classes = [CarForeignPermission | IsAdminUser]
 
     def get_queryset(self):
         return CarOption.objects.filter(car__owner=self.request.user)

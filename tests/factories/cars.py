@@ -2,8 +2,9 @@ import factory
 from cars import models
 from faker import Factory as FakerFactory
 
+from car_rent.cars.choices import CAR_STATUS_CHOICES
+
 from .users import UserFactory
-from car_rent.cars.choices import CAR_STATUS_CHOCIES
 
 faker = FakerFactory.create()
 
@@ -31,14 +32,30 @@ class CarFactory(factory.django.DjangoModelFactory):
         model = models.Car
     car_model = factory.SubFactory(CarModelFactory)
     color = factory.Faker('word')
-    score = factory.Faker('pydecimal', left_digits=1, right_digits=2, positive=True, min_value=1, max_value=5)
+    score = factory.Faker('pydecimal', left_digits=1,
+                          right_digits=2, positive=True, min_value=1, max_value=5)
     price = factory.Faker("pyint")
     owner = factory.SubFactory(UserFactory)
-    status = factory.Faker('random_element', elements=[choice[0] for choice in CAR_STATUS_CHOCIES])
+    status = CAR_STATUS_CHOICES.VERIFIED
     latitude = factory.Faker('latitude')
     longitude = factory.Faker('longitude')
 
-    @factory.post_generation
-    def set_status(self, create, extracted, **kwargs):
-        if extracted:
-            self.status = extracted
+    # @factory.post_generation
+    # def set_status(self, create, extracted, **kwargs):
+    #     if extracted:
+    #         self.status = extracted
+
+
+class CarOptionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.CarOption
+
+    car = factory.SubFactory(CarFactory)
+    option = factory.Faker('word')
+
+
+class CarPhotoFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.CarPhoto
+    car = factory.SubFactory(CarFactory)
+    photo = factory.django.FileField(name='test_photo.jpg')

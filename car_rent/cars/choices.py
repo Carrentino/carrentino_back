@@ -81,7 +81,7 @@ class BODY_TYPE_CHOCIES(Choices):
     )
 
 
-class CAR_STATUS_CHOCIES(Choices):
+class CAR_STATUS_CHOICES(Choices):
     '''Choices of status'''
     NOT_VERIFIED = 100
     VERIFIED = 200
