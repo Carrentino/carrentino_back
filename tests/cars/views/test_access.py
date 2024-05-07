@@ -69,11 +69,9 @@ def test_access_cars_retrieve(data, request, user_client, client):
 )
 def test_access_cars_create(data, user_client, client, run_common_fixtures):
     '''Тест доступа к create эндпоинтов cars'''
-    url, req, fixtures, model = data[:4]
-    if len(data) > 4:
-        rev_url = reverse(url, args=[data[4]])
-    else:
-        rev_url = reverse(url)
+    url, req, fixtures, model = data
+
+    rev_url = reverse(url)
     run_common_fixtures(fixtures)
     for user, code in [
         (client, status.HTTP_401_UNAUTHORIZED),
@@ -103,7 +101,6 @@ def test_access_option_create(data, request, user_client, client, misha, misha_c
     '''Тест доступа к create эндпоинтов cars'''
     url, req, obj_fixture, model = data
     attr = 'pk'
-    print(req)
     obj = request.getfixturevalue(obj_fixture)(owner=misha)
     rev_url = reverse(url, args=[getattr(obj, attr)])
     for user, code in [
@@ -112,7 +109,6 @@ def test_access_option_create(data, request, user_client, client, misha, misha_c
         (misha_client, status.HTTP_201_CREATED),
     ]:
         response = user.post(rev_url, data=req)
-        print(response.json())
         assert response.status_code == code
         if response.status_code == status.HTTP_201_CREATED:
             model.objects.filter(id=response.data.get('id')).delete()
@@ -144,7 +140,6 @@ def test_access_photo_create(data, request, mock_image, user_client, client, mis
         (misha_client, status.HTTP_201_CREATED),
     ]:
         response = user.post(rev_url, data=req, format=req_format)
-        print(response.json())
         assert response.status_code == code
         if response.status_code == status.HTTP_201_CREATED:
             model.objects.filter(id=response.data.get('id')).delete()

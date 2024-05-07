@@ -5,7 +5,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .choices import (BODY_TYPE_CHOCIES, CAR_STATUS_CHOCIES, DRIVE_CHOICES,
+from .choices import (BODY_TYPE_CHOCIES, CAR_STATUS_CHOICES, DRIVE_CHOICES,
                       FUEL_TYPE_CHOICES, GEARBOX_CHOICES)
 from .managers import OrderingManager
 
@@ -76,8 +76,8 @@ class Car(BaseAbstractModel):
     price = models.PositiveIntegerField(verbose_name='Цена')
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name='Владелец')
-    status = StatusField(choices=CAR_STATUS_CHOCIES,
-                         default=CAR_STATUS_CHOCIES.NOT_VERIFIED)
+    status = StatusField(choices=CAR_STATUS_CHOICES,
+                         default=CAR_STATUS_CHOICES.NOT_VERIFIED)
     latitude = models.FloatField(verbose_name='Широта')
     longitude = models.FloatField(verbose_name='Долгота')
 

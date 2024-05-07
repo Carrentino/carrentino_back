@@ -16,9 +16,10 @@ class CarActionPermission(BasePermission):
 
 
 class CarForeignPermission(BasePermission):
+    '''Пермишен для связных моделей автомобиля'''
+
     def has_permission(self, request, view):
         return request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
-        print(obj.car.owner == request.user)
         return (obj.car.owner == request.user)

@@ -2,7 +2,7 @@ import factory
 from cars import models
 from faker import Factory as FakerFactory
 
-from car_rent.cars.choices import CAR_STATUS_CHOCIES
+from car_rent.cars.choices import CAR_STATUS_CHOICES
 
 from .users import UserFactory
 
@@ -36,7 +36,7 @@ class CarFactory(factory.django.DjangoModelFactory):
                           right_digits=2, positive=True, min_value=1, max_value=5)
     price = factory.Faker("pyint")
     owner = factory.SubFactory(UserFactory)
-    status = CAR_STATUS_CHOCIES.VERIFIED
+    status = CAR_STATUS_CHOICES.VERIFIED
     latitude = factory.Faker('latitude')
     longitude = factory.Faker('longitude')
 
