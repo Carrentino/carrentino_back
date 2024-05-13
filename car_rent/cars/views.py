@@ -4,7 +4,6 @@ from drf_spectacular.utils import (OpenApiParameter, extend_schema,
                                    extend_schema_view)
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
@@ -180,7 +179,7 @@ class CarView(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
         serializer.is_valid(raise_exception=True)
         serializer.save(owner=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+
     @action(detail=False, methods=['get',])
     def map_view(self, request):
         '''Автомобили на карте'''
