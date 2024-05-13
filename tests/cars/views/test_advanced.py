@@ -14,10 +14,6 @@ from car_rent.cars import choices
         ['cars:car-model-list', {'brief': True}, ['id', 'title'], 'car_model'],
         ['cars:car-model-list', {}, ['title', 'type_of_fuel',
                                      'id', 'brand', 'hp', 'photos', 'fuel_consumption'], 'car_model'],
-        ['cars:car-list', {'view': 'map'},
-            ['id', 'latitude', 'longitude'], 'car'],
-        ['cars:car-list', {'view': 'list'},
-            ['price', 'id', 'score', 'car_model'], 'car'],
     ]
 )
 def test_advanced_cars_list(data, request, user_client, client):

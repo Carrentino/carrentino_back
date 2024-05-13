@@ -9,6 +9,8 @@ from rest_framework import status
     [
         'cars:brand-list',
         'cars:car-model-list',
+        'cars:car-map-view',
+        'cars:car-list-view',
     ]
 )
 def test_access_cars_list(url, user_client, client):
@@ -20,6 +22,31 @@ def test_access_cars_list(url, user_client, client):
     ]:
         response = user.get(rev_url)
         assert response.status_code == code
+
+
+@pytest.mark.parametrize(
+    'data',
+    [
+        [
+            'cars:car-user-cars-view',
+            'car_factory',
+        ],
+    ]
+)
+def test_access_user_cars(data, request, user_client, client, misha_client, misha):
+    '''Тест доступа к list эндпоинтов cars'''
+    url, obj_fixture = data
+    request.getfixturevalue(obj_fixture)(owner=misha)
+    rev_url = reverse(url)
+    for user, code, count in [
+        (client, status.HTTP_401_UNAUTHORIZED, None),
+        (user_client, status.HTTP_200_OK, 0),
+        (misha_client, status.HTTP_200_OK, 1),
+    ]:
+        response = user.get(rev_url)
+        assert response.status_code == code
+        if response.status_code == status.HTTP_200_OK:
+            assert len(response.json()) == count
 
 
 @pytest.mark.parametrize(

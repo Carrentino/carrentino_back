@@ -120,11 +120,19 @@ class CarModelView(BaseGetView):
         }
     )
 )
-class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
-              mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
-              mixins.DestroyModelMixin, viewsets.GenericViewSet):
+class CarView(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
+              mixins.UpdateModelMixin, mixins.DestroyModelMixin,
+              viewsets.GenericViewSet):
     '''Вьюсет для автомобилей'''
-    queryset = Car.objects.filter(status=CAR_STATUS_CHOICES.VERIFIED).select_related(
+    queryset = Car.objects.all()
+
+    action_querysets = {
+        'map_view': queryset.filter(status=CAR_STATUS_CHOICES.VERIFIED),
+        'list_view': queryset.filter(status=CAR_STATUS_CHOICES.VERIFIED).select_related('car_model', 'car_model__brand'),
+        'user_cars_view': queryset.select_related('car_model', 'car_model__brand'),
+    }
+
+    default_queryset = queryset.select_related(
         'car_model',
         'car_model__brand',
         'owner'
@@ -133,71 +141,32 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
         'car_option',
         'car_model__carmodel_photo',
         'car_model__brand__brand_photo',
-        'car_option')
-    queryset_only_fields = {
-        'list': ('id', 'car_model__title', 'price', 'score'),
-        'map': ('id', 'latitude', 'longitude'),
-    }
-    select_related_fields = {
-        'list': ('car_model',),
-    }
-    select_related_default_fields = (
-        'car_model',
-        'car_model__brand',
-        'owner'
     )
-    prefetch_related_default_fields = (
-        'car_photo',
-        'car_option',
-        'car_model__carmodel_photo',
-        'car_model__brand__brand_photo',
-        'car_option'
-    )
+
     serializer_class = CarSerializer
     serializer_classes = {
-        # views
-        'list': CarListSerializer,
-        'map': CarMapSerializer,
-        # actions
+        'map_view': CarMapSerializer,
+        'list_view': CarListSerializer,
+        'user_cars_view': CarListSerializer,
         'add_photo': CarPhotoSerializer,
         'add_option': CarOptionSerializer,
     }
-    # permission_classes = [CarPermission | IsAdminUser]
+
     permission_classes = {
         'create': [IsAuthenticated | IsAdminUser],
         'partial_update': [CarPermission | IsAdminUser],
         'destroy': [CarPermission | IsAdminUser],
+        'user_cars_view': [IsAuthenticated],
         'add_photo': [CarActionPermission | IsAdminUser],
         'add_option': [CarActionPermission | IsAdminUser],
     }
 
     def get_queryset(self):
-        '''сюда не лезть без острой необходимости. тут царит гармония'''
-        view = self.request.GET.get(
-            'view', None)  # Смотрим указан ли параметр отображения
-        if self.action == 'list':  # Проверяем запрос на экшн лист, если нет то стандартный кверисет
-            # Подтягиваем аргументы из дикта по указанному параметру либо None
-            fields = self.queryset_only_fields.get(view, None)
-            select_fields = self.select_related_fields.get(view, None)
-            if fields is not None:  # Если None то такого отображения не сущетсвует
-                field_queryset = self.queryset  # онлим по аргументам
-                return field_queryset if select_fields is None else field_queryset.select_related(*select_fields)
-            else:
-                raise NotFound(
-                    {'error': 'Такого варианта для view не сущетсвует. Возможные варианты list, map'})
-        return self.queryset.select_related(*self.select_related_default_fields).prefetch_related(*self.prefetch_related_default_fields)
+        queryset = self.action_querysets.get(self.action, None)
+        return queryset if queryset is not None else self.default_queryset
 
     def get_serializer_class(self):
-        '''сюда не лезть без острой необходимости. тут царит гармония'''
-        view = self.request.GET.get(
-            'view', None)  # Смотрим указан ли параметр отображения
-        # Проверяем запрос на экшн лист, если нет то стандартный сериалайзер
-        if self.action == 'list' and view is not None:
-            # ретурним сериалайзер с ключом который указан в параметрах
-            return self.serializer_classes.get(view, self.serializer_class)
-        serializer = self.serializer_classes.get(
-            self.action, None)  # стягиваем сериалайзер по экшну
-        # возвращаем сериалайзер по экшну если он не None либо стандартный
+        serializer = self.serializer_classes.get(self.action, None)
         return serializer if serializer is not None else self.serializer_class
 
     def get_permissions(self):
@@ -211,6 +180,27 @@ class CarView(mixins.ListModelMixin, mixins.CreateModelMixin,
         serializer.is_valid(raise_exception=True)
         serializer.save(owner=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    @action(detail=False, methods=['get',])
+    def map_view(self, request):
+        '''Автомобили на карте'''
+        queryset = self.get_queryset()
+        serializer = self.get_serializer_class()(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get',])
+    def list_view(self, request):
+        '''Автомобили списком'''
+        queryset = self.get_queryset()
+        serializer = self.get_serializer_class()(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get',])
+    def user_cars_view(self, request):
+        '''Автомобили пользователя'''
+        queryset = self.get_queryset().filter(owner=request.user)
+        serializer = self.get_serializer_class()(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
     def add_photo(self, request, pk=None):
