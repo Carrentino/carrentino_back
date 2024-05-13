@@ -72,6 +72,33 @@ class CarModelView(BaseGetView):
                              description='Вид отображения список/карта', enum=['map', 'list'])
         ]
     ),
+    map_view=extend_schema(
+        request=CarMapSerializer,
+        responses={
+            status.HTTP_201_CREATED: CarMapSerializer,
+        }
+    ),
+    list_view=extend_schema(
+        request=CarListSerializer,
+        responses={
+            status.HTTP_201_CREATED: CarListSerializer,
+        }
+    ),
+    user_cars_view=extend_schema(
+        request=CarListSerializer,
+        responses={
+            status.HTTP_201_CREATED: CarListSerializer,
+            status.HTTP_401_UNAUTHORIZED: {
+                "type": "object",
+                "properties": {
+                    "detail": {"type": "string"}
+                },
+                "example": {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        }
+    ),
     add_photo=extend_schema(
         request=CarPhotoSerializer,
         responses={
