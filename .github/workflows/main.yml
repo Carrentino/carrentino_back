@@ -57,7 +57,7 @@ jobs:
         -o $HOME/minio-binaries/mc
         chmod +x $HOME/minio-binaries/mc
         export PATH=$PATH:$HOME/minio-binaries/
-        mc alias set minio http://localhost:9000 minio minio
+        mc alias set myminio http://localhost:9000 minio minio
         mc mb minio/bucket
         mkdir car_rent/logs
         cd car_rent
