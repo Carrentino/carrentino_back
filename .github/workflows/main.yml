@@ -20,11 +20,13 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       minio:
         image: minio/minio
-        ports:
-          - 9000:9000
         env:
           AWS_ACCESS_KEY_ID: minio
           AWS_SECRET_ACCESS_KEY: minio
+        ports:
+          - 9000:9000
+          - 9001:9001
+        options: --name=minio
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
@@ -39,17 +41,6 @@ jobs:
         pip install -r ./car_rent/requirements.txt 
 
     - name: pytest
-      env:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-        POSTGRES_DB: postgres
-        POSTGRES_HOST: localhost
-        POSTGRES_PORT: 5432
-        SECRET_KEY: django-insecure-i3oa78jvvn)y(yvx)_zo$(uxp4$jw4c*dub1bl6#&u5mf&x_ix
-        AWS_STORAGE_BUCKET_NAME: bucket
-        AWS_ACCESS_KEY_ID: minio
-        AWS_SECRET_ACCESS_KEY: minio
-        AWS_S3_ENDPOINT_URL: http://localhost:9001
       run: |
         mkdir car_rent/logs
         cd car_rent
