@@ -51,7 +51,7 @@ jobs:
         AWS_STORAGE_BUCKET_NAME: bucket
         AWS_ACCESS_KEY_ID: minio
         AWS_SECRET_ACCESS_KEY: minio
-        AWS_S3_ENDPOINT_URL: http://localhost:9000
+        AWS_S3_ENDPOINT_URL: http://localhost:9001
       run: |
         mkdir car_rent/logs
         cd car_rent
