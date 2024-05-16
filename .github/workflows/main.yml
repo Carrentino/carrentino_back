@@ -38,8 +38,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip 
         pip install flake8==6.0.0 flake8-isort==6.0.0
-        pip install -r ./car_rent/requirements.txt 
-
+        pip install -r ./car_rent/requirements.txt
     - name: pytest
       env:
         POSTGRES_USER: postgres
@@ -53,6 +52,8 @@ jobs:
         AWS_SECRET_ACCESS_KEY: minio
         AWS_S3_ENDPOINT_URL: http://localhost:9000
       run: |
+        mc alias set minio http://localhost:9000 minio minio
+        mc mb minio/bucket
         mkdir car_rent/logs
         cd car_rent
         export DJANGO_SETTINGS_MODULE=config.settings
