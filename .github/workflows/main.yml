@@ -21,8 +21,8 @@ jobs:
       minio:
         image: grigoleg/minio
         env:
-          MINIO_ACCESS_KEY: minio
-          MINIO_SECRET_KEY: minio
+          MINIO_ACCESS_KEY: hui
+          MINIO_SECRET_KEY: pedik
         ports:
           - 9000:9000
           - 9001:9001
@@ -48,8 +48,8 @@ jobs:
         POSTGRES_PORT: 5432
         SECRET_KEY: django-insecure-i3oa78jvvn)y(yvx)_zo$(uxp4$jw4c*dub1bl6#&u5mf&x_ix
         AWS_STORAGE_BUCKET_NAME: bucket
-        AWS_ACCESS_KEY_ID: minio
-        AWS_SECRET_ACCESS_KEY: minio
+        AWS_ACCESS_KEY_ID: hui
+        AWS_SECRET_ACCESS_KEY: pedik
         AWS_S3_ENDPOINT_URL: http://localhost:9000
       run: |
         curl https://dl.min.io/client/mc/release/linux-amd64/mc \
@@ -57,7 +57,7 @@ jobs:
         -o $HOME/minio-binaries/mc
         chmod +x $HOME/minio-binaries/mc
         export PATH=$PATH:$HOME/minio-binaries/
-        mc alias set myminio http://localhost:9000 minio minio
+        mc alias set minio http://localhost:9000 hui pedik
         mc mb minio/bucket
         mkdir car_rent/logs
         cd car_rent
