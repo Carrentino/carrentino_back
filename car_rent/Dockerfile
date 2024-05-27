@@ -12,4 +12,4 @@ RUN mkdir logs
 
 EXPOSE 9000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:9000", "config.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8020", "config.wsgi:application"]
