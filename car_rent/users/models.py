@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from users.choices import USER_ROLES
+
 
 class User(AbstractUser):
     '''Model of user'''
@@ -24,6 +26,7 @@ class User(AbstractUser):
     score = models.FloatField(default=5.0, verbose_name='Рейтинг')
     status = models.CharField(max_length=2, choices=UserStatus,
                               default=UserStatus.NOT_VERIFIED, verbose_name='Статус')
+    role = models.CharField(max_length=2, choices=USER_ROLES, default=USER_ROLES.PERSON, verbose_name="Роль")
 
     class Meta:
         verbose_name = 'Пользователь'
