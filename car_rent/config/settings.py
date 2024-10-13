@@ -104,26 +104,26 @@ LOGGING = {
             'level': LEVEL_OF_CONSOLE_LOG,
             'class': 'logging.StreamHandler',
         },
-        'prod': {
-            'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'filename': f'{BASE_DIR}/logs/prod.log',
-            'formatter': 'verbose',
-        },
-        'dev': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': f'{BASE_DIR}/logs/dev.log',
-            'formatter': 'verbose',
-        },
+        # 'prod': {
+        #     'level': 'WARNING',
+        #     'class': 'logging.FileHandler',
+        #     'filename': f'{BASE_DIR}/logs/prod.log',
+        #     'formatter': 'verbose',
+        # },
+        # 'dev': {
+        #     'level': 'DEBUG',
+        #     'class': 'logging.FileHandler',
+        #     'filename': f'{BASE_DIR}/logs/dev.log',
+        #     'formatter': 'verbose',
+        # },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['prod', 'console'] if DEBUG else ['dev', 'console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
+    # 'loggers': {
+    #     'django': {
+    #         'handlers': ['prod', 'console'] if DEBUG else ['dev', 'console'],
+    #         'level': 'DEBUG',
+    #         'propagate': True,
+    #     },
+    # },
 }
 
 AUTH_PASSWORD_VALIDATORS = [
