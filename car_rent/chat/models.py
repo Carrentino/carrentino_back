@@ -1,3 +1,5 @@
-from django.db import models
+from core.models import BaseAbstractModel
 
-# Create your models here.
+
+class Room(BaseAbstractModel):
+
