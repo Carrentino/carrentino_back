@@ -6,6 +6,7 @@ from core.models import BaseAbstractModel
 from users.models import User
 from cars.models import Car
 from .choices import ORDER_STATUSES
+from chat.models import Chat
 
 
 class Order(BaseAbstractModel):
@@ -18,7 +19,7 @@ class Order(BaseAbstractModel):
         User, on_delete=models.CASCADE,
         verbose_name="Арендатор"
     )
-    #  TODO: связь с чатом
+    chat_room = models.ForeignKey(Chat, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Чат по заказу")
 
     desired_finish_datetime = models.DateTimeField(
         verbose_name="Планируемое время окончания аренда"
