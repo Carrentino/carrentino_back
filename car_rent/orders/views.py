@@ -13,6 +13,7 @@ from .models import Order
 from .serializers import OrderSerializer, OrderRetriveSerializer, OrderCreateSerializer, OrderUpdateSerializer
 from .utils import check_order_status
 from .choices import ORDER_STATUSES
+from chat.models import Chat
 
 
 @extend_schema_view(
@@ -266,6 +267,9 @@ class OrderViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet,
         if status_checker.get("response"):
             return status_checker["response"]
         order.status = ORDER_STATUSES.ACCEPTED
+        chat_room = Chat.objects.create()
+        chat_room.participants.add(request.user, order.renter)
+        order.chat_room = chat_room
         # TODO: добавить таску для отправки уведов
         order.save()
         return Response({"ok": "Заказ подтвержден"}, status=status.HTTP_200_OK)
