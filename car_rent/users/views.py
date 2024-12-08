@@ -5,10 +5,12 @@ from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.serializers import ValidationError
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenViewBase
 
+from .choices import USER_ROLES
 from .serializers.model_serializers import (UserRegisterSerializer,
                                             UserSerializer)
 from .serializers.serializers import (AuthTokenOutputSerializer,
@@ -88,6 +90,47 @@ class CustomObtainAuthToken(TokenViewBase):
         password = validated_data.get('password')
 
         user = authenticate_user(email, password)
+
+        refresh = RefreshToken.for_user(user)
+        token_serializer = AuthTokenOutputSerializer({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user': UserSerializer(user).data
+        })
+        return Response(token_serializer.data, status=status.HTTP_202_ACCEPTED)
+
+
+class CustomObtainAuthCommerceToken(TokenViewBase):
+    '''Authorization'''
+    @extend_schema(
+        request=AuthTokenSerializer,
+        responses={
+            status.HTTP_201_CREATED: AuthTokenOutputSerializer,
+            status.HTTP_400_BAD_REQUEST: {
+                "type": "object",
+                "properties": {
+                    "email": {"type": "array", "items": {"type": "string"}},
+                    "password": {"type": "array", "items": {"type": "string"}}
+                },
+                "example": {
+                    "email": ["This field is required."],
+                    "password": ["This field is required."]
+                }
+            }
+        },
+        description='Endpoint for user login'
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = AuthTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        validated_data = serializer.validated_data
+        email = validated_data.get('email')
+        password = validated_data.get('password')
+
+        user = authenticate_user(email, password)
+        if user.role != USER_ROLES.COMPANY:
+            raise ValidationError("You must be a Company")
 
         refresh = RefreshToken.for_user(user)
         token_serializer = AuthTokenOutputSerializer({
