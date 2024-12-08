@@ -5,6 +5,7 @@ from .views import *
 
 urlpatterns = [
     path('api/token/', CustomObtainAuthToken.as_view(), name='token_obtain_pair'),
+    path('api/company-token/', CustomObtainAuthCommerceToken.as_view(), name='company_token'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('registration/', RegistrationView.as_view(), name='token_registration'),
     path('send_code/', SendPasswordCodeView.as_view(), name='token_send_code'),
