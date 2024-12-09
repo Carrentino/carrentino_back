@@ -8,6 +8,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('users-api/', include("users.urls")),
     path('cars-api/', include("cars.urls")),
+    path('crm-api/', include("crm.urls")),
     path('orders-api/', include("orders.urls")),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='docs'),
