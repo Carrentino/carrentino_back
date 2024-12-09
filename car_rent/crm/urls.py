@@ -8,6 +8,7 @@ app_name = 'crm'
 router_v1 = DefaultRouter()
 
 router_v1.register('cars', CompanyCarView, basename='cars')
+router_v1.register('orders', CompanyOrderView, basename='orders')
 
 
 urlpatterns = [
