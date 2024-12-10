@@ -1,3 +1,5 @@
+from rest_framework.views import APIView
+
 from core.views import BaseGetView
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (OpenApiParameter, extend_schema,

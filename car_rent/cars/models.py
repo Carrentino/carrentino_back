@@ -80,6 +80,8 @@ class Car(BaseAbstractModel):
                          default=CAR_STATUS_CHOICES.NOT_VERIFIED)
     latitude = models.FloatField(verbose_name='Широта')
     longitude = models.FloatField(verbose_name='Долгота')
+    watched = models.PositiveIntegerField(default=0)
+    bought = models.PositiveIntegerField(default=0)
 
 
 class CarOption(models.Model):
